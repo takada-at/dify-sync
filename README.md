@@ -41,21 +41,51 @@ LOG_LEVEL=info
 
 ## Usage
 
-### Development Mode
+### Interactive Mode
+
+Run the application in interactive mode to use the terminal UI:
+
 ```bash
+# Development mode
 npm start
-```
 
-### Watch Mode
-```bash
+# Watch mode
 npm run dev
-```
 
-### Built Version
-```bash
+# Built version
 npm run build
 dify-sync
 ```
+
+### Command Line Mode
+
+The CLI supports direct upload and download operations:
+
+```bash
+# Upload files from a directory
+dify-sync --upload ./my-files
+
+# Download documents to a directory
+dify-sync --download ./downloads
+
+# Force overwrite existing files during download
+dify-sync --download ./downloads --force
+
+# Use a specific dataset ID (overrides environment variable)
+dify-sync --upload ./files --dataset-id your-dataset-id
+
+# Combine multiple options
+dify-sync --upload ./files --dataset-id abc123 --force
+```
+
+### CLI Options
+
+- `-u, --upload <path>` - Upload files from the specified path recursively
+- `-d, --download <path>` - Download files to the specified path
+- `-f, --force` - Force overwrite existing files without confirmation
+- `--dataset-id <id>` - Specify the Dify dataset ID (overrides DIFY_DATASET_ID environment variable)
+
+**Note**: The `--dataset-id` option allows you to work with different datasets without modifying your `.env` file. This is particularly useful when working with multiple Dify datasets or in CI/CD environments.
 
 ## Commands
 
