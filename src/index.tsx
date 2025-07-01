@@ -18,6 +18,10 @@ program
   )
   .option('-d, --download <path>', 'Download files to the specified path')
   .option('-f, --force', 'Force overwrite existing files without confirmation')
+  .option(
+    '--dataset-id <id>',
+    'Specify the Dify dataset ID (overrides DIFY_DATASET_ID environment variable)'
+  )
   .parse(globalThis.process.argv);
 
 const options = program.opts();
@@ -45,5 +49,6 @@ render(
     uploadPath={options.upload}
     downloadPath={options.download}
     forceOverwrite={options.force}
+    datasetId={options.datasetId}
   />
 );

@@ -15,14 +15,21 @@ import { useUpload } from '../hooks/useUpload.js';
 import { useDownload } from '../hooks/useDownload.js';
 import { LocalFile } from '../repositories/fileRepository.js';
 import { Document } from '../core/types/index.js';
+import { setDatasetIdOverride } from '../repositories/config.js';
 
 interface AppProps {
   uploadPath?: string;
   downloadPath?: string;
   forceOverwrite?: boolean;
+  datasetId?: string;
 }
 
-export function App({ uploadPath, downloadPath, forceOverwrite }: AppProps) {
+export function App({
+  uploadPath,
+  downloadPath,
+  forceOverwrite,
+  datasetId,
+}: AppProps) {
   const {
     state,
     setState,
@@ -32,6 +39,13 @@ export function App({ uploadPath, downloadPath, forceOverwrite }: AppProps) {
     handleBack,
     handleError,
   } = useAppState();
+
+  // Set dataset ID override if provided via CLI argument
+  React.useEffect(() => {
+    if (datasetId) {
+      setDatasetIdOverride(datasetId);
+    }
+  }, [datasetId]);
 
   const {
     localFiles,
