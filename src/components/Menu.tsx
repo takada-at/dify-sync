@@ -4,6 +4,8 @@ import { Box, Text, useInput } from 'ink';
 export interface MenuOption {
   label: string;
   value: string;
+  icon?: string;
+  description?: string;
 }
 
 interface MenuProps {
@@ -15,7 +17,7 @@ interface MenuProps {
 export function Menu({ title, options, onSelect }: MenuProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useInput((input, key) => {
+  useInput((_, key) => {
     if (key.upArrow) {
       setSelectedIndex(prev => (prev > 0 ? prev - 1 : options.length - 1));
     } else if (key.downArrow) {
@@ -26,24 +28,62 @@ export function Menu({ title, options, onSelect }: MenuProps) {
   });
 
   return (
-    <Box flexDirection="column" padding={1}>
-      <Box marginBottom={1}>
-        <Text bold color="cyan">
-          {title}
-        </Text>
-      </Box>
-
-      {options.map((option, index) => (
-        <Box key={option.value} marginLeft={2}>
-          <Text color={index === selectedIndex ? 'green' : 'white'}>
-            {index === selectedIndex ? '→ ' : '  '}
-            {option.label}
+    <Box flexDirection="column">
+      <Box
+        borderStyle="round"
+        borderColor="cyan"
+        padding={1}
+        flexDirection="column"
+        width={60}
+      >
+        <Box justifyContent="center" marginBottom={1}>
+          <Text bold color="cyan">
+            {title}
           </Text>
         </Box>
-      ))}
 
-      <Box marginTop={1}>
-        <Text color="gray">Use ↑↓ arrows to navigate, Enter to select</Text>
+        <Box flexDirection="column" gap={1}>
+          {options.map((option, index) => {
+            const isSelected = index === selectedIndex;
+            return (
+              <Box
+                key={option.value}
+                paddingX={2}
+                paddingY={1}
+                borderStyle={isSelected ? 'bold' : 'single'}
+                borderColor={isSelected ? 'magenta' : 'gray'}
+                flexDirection="column"
+              >
+                <Box gap={1}>
+                  <Text
+                    color={isSelected ? 'magenta' : 'white'}
+                    bold={isSelected}
+                  >
+                    {isSelected ? '▶' : ' '} {option.icon || '•'}{' '}
+                    {option.label}
+                  </Text>
+                </Box>
+                {option.description && (
+                  <Box marginLeft={4} marginTop={0}>
+                    <Text color={isSelected ? 'gray' : 'darkGray'} italic>
+                      {option.description}
+                    </Text>
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+
+      <Box marginTop={1} justifyContent="center">
+        <Box borderStyle="round" borderColor="darkGray" paddingX={2}>
+          <Text color="gray">
+            <Text color="yellow">↑↓</Text> Navigate{' '}
+            <Text color="yellow">↵</Text> Select <Text color="yellow">^C</Text>{' '}
+            Exit
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
