@@ -15,8 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "format": "prettier --write src/**/*.{ts,tsx}",
-    "format:check": "prettier --check src/**/*.{ts,tsx}"
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\""
   },
   "keywords": [
     "dify",
@@ -47,5 +47,15 @@
     "tsx": "^4.0.0",
     "typescript": "^5.0.0",
     "vitest": "^3.2.4"
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 2,
+    "useTabs": false,
+    "bracketSpacing": true,
+    "arrowParens": "avoid"
   }
 }

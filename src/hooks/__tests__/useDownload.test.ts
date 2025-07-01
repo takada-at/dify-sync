@@ -69,7 +69,9 @@ describe('useDownload', () => {
   });
 
   it('should handle directory loading error', async () => {
-    mockFileRepository.getDirectories.mockRejectedValue(new Error('Directory read failed'));
+    mockFileRepository.getDirectories.mockRejectedValue(
+      new Error('Directory read failed')
+    );
 
     const { result } = renderHook(() => useDownload());
 
@@ -77,14 +79,16 @@ describe('useDownload', () => {
       await act(async () => {
         await result.current.loadDownloadDirectories();
       });
-    }).rejects.toThrow('Failed to load download directories: Directory read failed');
+    }).rejects.toThrow(
+      'Failed to load download directories: Directory read failed'
+    );
   });
 
   it('should load documents successfully', async () => {
     const mockDocuments = [
-      { 
-        id: '1', 
-        name: 'doc1.md', 
+      {
+        id: '1',
+        name: 'doc1.md',
         position: 0,
         data_source_type: 'upload_file',
         created_from: 'api',
@@ -96,7 +100,7 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
     ];
 
@@ -118,9 +122,9 @@ describe('useDownload', () => {
 
   it('should handle multiple files download process', async () => {
     const mockDocuments = [
-      { 
-        id: '1', 
-        name: 'doc1.md', 
+      {
+        id: '1',
+        name: 'doc1.md',
         position: 0,
         data_source_type: 'upload_file',
         created_from: 'api',
@@ -132,11 +136,11 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
-      { 
-        id: '2', 
-        name: 'doc2.txt', 
+      {
+        id: '2',
+        name: 'doc2.txt',
         position: 1,
         data_source_type: 'upload_file',
         created_from: 'api',
@@ -148,11 +152,11 @@ describe('useDownload', () => {
         archived: false,
         word_count: 200,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
-      { 
-        id: '3', 
-        name: 'doc3.json', 
+      {
+        id: '3',
+        name: 'doc3.json',
         position: 2,
         data_source_type: 'upload_file',
         created_from: 'api',
@@ -164,7 +168,7 @@ describe('useDownload', () => {
         archived: false,
         word_count: 150,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
     ];
 
@@ -173,9 +177,7 @@ describe('useDownload', () => {
     };
 
     const mockSegments = {
-      data: [
-        { content: 'Content of document', position: 0 }
-      ]
+      data: [{ content: 'Content of document', position: 0 }],
     };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
@@ -197,13 +199,15 @@ describe('useDownload', () => {
 
     // Wait for all downloads to complete
     await waitFor(() => {
-      expect(result.current.downloadProgress.every(p => p.status === 'completed')).toBe(true);
+      expect(
+        result.current.downloadProgress.every(p => p.status === 'completed')
+      ).toBe(true);
     });
 
     // Verify all downloads were completed
     expect(mockDifyClient.getDocumentSegments).toHaveBeenCalledTimes(3);
     expect(mockFs.writeFile).toHaveBeenCalledTimes(3);
-    
+
     // Check that all files were processed with correct filenames (preserving extensions)
     expect(mockFs.writeFile).toHaveBeenCalledWith(
       './downloads/doc1.md',
@@ -238,7 +242,7 @@ describe('useDownload', () => {
         word_count: 100,
         hit_count: 0,
         doc_form: 'text_model',
-        name: 'doc1.md'
+        name: 'doc1.md',
       },
     ];
 
@@ -285,14 +289,16 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
-    
+
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocumentSegments.mockRejectedValue(new Error('API Error'));
+    mockDifyClient.getDocumentSegments.mockRejectedValue(
+      new Error('API Error')
+    );
 
     const onError = vi.fn();
     const { result } = renderHook(() => useDownload(undefined, onError));
@@ -329,7 +335,7 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
     ];
 
@@ -338,7 +344,7 @@ describe('useDownload', () => {
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
     mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
-    
+
     // Simulate file exists
     mockFs.access.mockResolvedValue(undefined);
 
@@ -376,7 +382,7 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model'
+        doc_form: 'text_model',
       },
     ];
 
@@ -429,7 +435,7 @@ describe('useDownload', () => {
   it('should process files sequentially', async () => {
     const mockDocuments = [
       { id: '1', name: 'doc1.txt' },
-      { id: '2', name: 'doc2.txt' }
+      { id: '2', name: 'doc2.txt' },
     ] as any[];
 
     const mockConfigData = { datasetId: 'test-dataset' };
@@ -447,10 +453,12 @@ describe('useDownload', () => {
     });
 
     const callOrder: string[] = [];
-    mockDifyClient.getDocumentSegments.mockImplementation((datasetId: string, docId: string) => {
-      callOrder.push(docId);
-      return Promise.resolve(mockSegments);
-    });
+    mockDifyClient.getDocumentSegments.mockImplementation(
+      (datasetId: string, docId: string) => {
+        callOrder.push(docId);
+        return Promise.resolve(mockSegments);
+      }
+    );
 
     await act(async () => {
       await result.current.handleDownloadDocuments(mockDocuments);
@@ -476,14 +484,16 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model'
-      }
+        doc_form: 'text_model',
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
-    
+
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocumentSegments.mockRejectedValue(new Error('Network error'));
+    mockDifyClient.getDocumentSegments.mockRejectedValue(
+      new Error('Network error')
+    );
 
     const onError = vi.fn();
     const { result } = renderHook(() => useDownload(undefined, onError));

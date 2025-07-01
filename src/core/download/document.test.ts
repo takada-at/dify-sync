@@ -1,14 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { combineSegments, sanitizeFileName, generateFilePath } from './document.js';
+import {
+  combineSegments,
+  sanitizeFileName,
+  generateFilePath,
+} from './document.js';
 
 describe('combineSegments', () => {
   it('should combine segments in correct order', () => {
     const segments = [
       { content: 'Third', position: 2 },
       { content: 'First', position: 0 },
-      { content: 'Second', position: 1 }
+      { content: 'Second', position: 1 },
     ];
-    
+
     expect(combineSegments(segments)).toBe('First\n\nSecond\n\nThird');
   });
 
@@ -37,16 +41,26 @@ describe('sanitizeFileName', () => {
 
   it('should keep valid characters unchanged', () => {
     expect(sanitizeFileName('valid_file-name.txt')).toBe('valid_file-name.txt');
-    expect(sanitizeFileName('file name with spaces')).toBe('file name with spaces');
+    expect(sanitizeFileName('file name with spaces')).toBe(
+      'file name with spaces'
+    );
   });
 });
 
 describe('generateFilePath', () => {
   it('should preserve original file extension', () => {
-    expect(generateFilePath('document.md', '/output')).toBe('/output/document.md');
-    expect(generateFilePath('document.json', '/output')).toBe('/output/document.json');
-    expect(generateFilePath('document.csv', '/output')).toBe('/output/document.csv');
-    expect(generateFilePath('document.txt', '/output')).toBe('/output/document.txt');
+    expect(generateFilePath('document.md', '/output')).toBe(
+      '/output/document.md'
+    );
+    expect(generateFilePath('document.json', '/output')).toBe(
+      '/output/document.json'
+    );
+    expect(generateFilePath('document.csv', '/output')).toBe(
+      '/output/document.csv'
+    );
+    expect(generateFilePath('document.txt', '/output')).toBe(
+      '/output/document.txt'
+    );
   });
 
   it('should handle files without extension', () => {
@@ -54,23 +68,39 @@ describe('generateFilePath', () => {
   });
 
   it('should preserve multiple dots in filename', () => {
-    expect(generateFilePath('file.backup.md', '/output')).toBe('/output/file.backup.md');
-    expect(generateFilePath('config.local.json', '/output')).toBe('/output/config.local.json');
+    expect(generateFilePath('file.backup.md', '/output')).toBe(
+      '/output/file.backup.md'
+    );
+    expect(generateFilePath('config.local.json', '/output')).toBe(
+      '/output/config.local.json'
+    );
   });
 
   it('should sanitize file names while preserving extensions', () => {
-    expect(generateFilePath('doc/with/slashes.md', '/output')).toBe('/output/doc-with-slashes.md');
-    expect(generateFilePath('file*with?special.json', '/output')).toBe('/output/file-with-special.json');
+    expect(generateFilePath('doc/with/slashes.md', '/output')).toBe(
+      '/output/doc-with-slashes.md'
+    );
+    expect(generateFilePath('file*with?special.json', '/output')).toBe(
+      '/output/file-with-special.json'
+    );
   });
 
   it('should handle complex paths with various extensions', () => {
-    expect(generateFilePath('my document.csv', '/path/to/output')).toBe('/path/to/output/my document.csv');
-    expect(generateFilePath('data-file.jsonl', '/output')).toBe('/output/data-file.jsonl');
+    expect(generateFilePath('my document.csv', '/path/to/output')).toBe(
+      '/path/to/output/my document.csv'
+    );
+    expect(generateFilePath('data-file.jsonl', '/output')).toBe(
+      '/output/data-file.jsonl'
+    );
   });
 
   it('should handle edge cases with dots', () => {
-    expect(generateFilePath('.gitignore', '/output')).toBe('/output/.gitignore');
+    expect(generateFilePath('.gitignore', '/output')).toBe(
+      '/output/.gitignore'
+    );
     expect(generateFilePath('file.', '/output')).toBe('/output/file.');
-    expect(generateFilePath('.hidden.txt', '/output')).toBe('/output/.hidden.txt');
+    expect(generateFilePath('.hidden.txt', '/output')).toBe(
+      '/output/.hidden.txt'
+    );
   });
 });

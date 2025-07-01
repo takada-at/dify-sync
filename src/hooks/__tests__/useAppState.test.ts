@@ -76,7 +76,11 @@ describe('useAppState', () => {
   it('should transition through multiple states', () => {
     const { result } = renderHook(() => useAppState());
 
-    const states = ['upload-directory-select', 'upload-file-select', 'upload-progress'] as const;
+    const states = [
+      'upload-directory-select',
+      'upload-file-select',
+      'upload-progress',
+    ] as const;
 
     states.forEach(state => {
       act(() => {

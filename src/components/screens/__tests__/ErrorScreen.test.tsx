@@ -44,7 +44,8 @@ describe('ErrorScreen', () => {
   });
 
   it('should handle long error messages', () => {
-    const longError = 'This is a very long error message that might span multiple lines and contains detailed information about what went wrong during the operation';
+    const longError =
+      'This is a very long error message that might span multiple lines and contains detailed information about what went wrong during the operation';
     const { getByText } = render(<ErrorScreen error={longError} />);
 
     expect(getByText(longError)).toBeInTheDocument();

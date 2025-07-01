@@ -74,6 +74,6 @@ export interface UploadProgress {
 export interface DownloadProgress {
   fileName: string;
   progress: number;
-  status: 'pending' | 'in-progress' | 'completed' | 'error';
+  status: 'pending' | 'in-progress' | 'completed' | 'error' | 'skipped';
   error?: string;
 }

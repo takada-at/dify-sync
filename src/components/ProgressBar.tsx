@@ -5,7 +5,7 @@ import { ProgressBar as InkProgressBar } from '@inkjs/ui';
 interface ProgressBarProps {
   label: string;
   progress: number; // 0-100
-  status: 'pending' | 'in-progress' | 'completed' | 'error';
+  status: 'pending' | 'in-progress' | 'completed' | 'error' | 'skipped';
   error?: string;
 }
 
@@ -23,6 +23,8 @@ export function ProgressBar({
         return 'red';
       case 'in-progress':
         return 'yellow';
+      case 'skipped':
+        return 'blue';
       default:
         return 'gray';
     }
@@ -36,6 +38,8 @@ export function ProgressBar({
         return '✗';
       case 'in-progress':
         return '◐';
+      case 'skipped':
+        return '⊝';
       default:
         return '○';
     }

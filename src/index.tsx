@@ -16,6 +16,8 @@ program
     '-u, --upload <path>',
     'Upload files from the specified path recursively'
   )
+  .option('-d, --download <path>', 'Download files to the specified path')
+  .option('-f, --force', 'Force overwrite existing files without confirmation')
   .parse(globalThis.process.argv);
 
 const options = program.opts();
@@ -38,4 +40,10 @@ globalThis.process.on('uncaughtException', error => {
 });
 
 // Render the app
-render(<App uploadPath={options.upload} />);
+render(
+  <App
+    uploadPath={options.upload}
+    downloadPath={options.download}
+    forceOverwrite={options.force}
+  />
+);
