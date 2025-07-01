@@ -204,9 +204,19 @@ describe('useDownload', () => {
     expect(mockDifyClient.getDocumentSegments).toHaveBeenCalledTimes(3);
     expect(mockFs.writeFile).toHaveBeenCalledTimes(3);
     
-    // Check that all files were processed
+    // Check that all files were processed with correct filenames (preserving extensions)
     expect(mockFs.writeFile).toHaveBeenCalledWith(
-      './downloads/doc1.md.txt',
+      './downloads/doc1.md',
+      'Content of document',
+      'utf-8'
+    );
+    expect(mockFs.writeFile).toHaveBeenCalledWith(
+      './downloads/doc2.txt',
+      'Content of document',
+      'utf-8'
+    );
+    expect(mockFs.writeFile).toHaveBeenCalledWith(
+      './downloads/doc3.json',
       'Content of document',
       'utf-8'
     );

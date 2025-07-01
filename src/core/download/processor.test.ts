@@ -30,7 +30,7 @@ describe('createDownloadProcessor', () => {
       status: 'success'
     });
     
-    expect(deps.saveFile).toHaveBeenCalledWith('/output/test.txt', 'Hello\n\nWorld', false);
+    expect(deps.saveFile).toHaveBeenCalledWith('/output/test', 'Hello\n\nWorld', false);
   });
 
   it('should handle file conflict with overwrite decision', async () => {
@@ -52,11 +52,11 @@ describe('createDownloadProcessor', () => {
     expect(onConflict).toHaveBeenCalledWith({
       documentId: '1',
       documentName: 'test',
-      filePath: '/output/test.txt'
+      filePath: '/output/test'
     });
     
     expect(result.status).toBe('success');
-    expect(deps.saveFile).toHaveBeenCalledWith('/output/test.txt', 'Content', true);
+    expect(deps.saveFile).toHaveBeenCalledWith('/output/test', 'Content', true);
   });
 
   it('should handle file conflict with skip decision', async () => {

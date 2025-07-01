@@ -13,6 +13,5 @@ export function sanitizeFileName(name: string): string {
 
 export function generateFilePath(documentName: string, outputDir: string): string {
   const sanitizedName = sanitizeFileName(documentName);
-  const fileName = sanitizedName.endsWith('.txt') ? sanitizedName : `${sanitizedName}.txt`;
-  return `${outputDir}/${fileName}`;
+  return `${outputDir}/${sanitizedName}`;
 }

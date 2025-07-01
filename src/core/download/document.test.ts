@@ -42,19 +42,35 @@ describe('sanitizeFileName', () => {
 });
 
 describe('generateFilePath', () => {
-  it('should generate correct file path with .txt extension', () => {
-    expect(generateFilePath('document', '/output')).toBe('/output/document.txt');
-  });
-
-  it('should not duplicate .txt extension', () => {
+  it('should preserve original file extension', () => {
+    expect(generateFilePath('document.md', '/output')).toBe('/output/document.md');
+    expect(generateFilePath('document.json', '/output')).toBe('/output/document.json');
+    expect(generateFilePath('document.csv', '/output')).toBe('/output/document.csv');
     expect(generateFilePath('document.txt', '/output')).toBe('/output/document.txt');
   });
 
-  it('should sanitize file names', () => {
-    expect(generateFilePath('doc/with/slashes', '/output')).toBe('/output/doc-with-slashes.txt');
+  it('should handle files without extension', () => {
+    expect(generateFilePath('document', '/output')).toBe('/output/document');
   });
 
-  it('should handle complex paths', () => {
-    expect(generateFilePath('my document', '/path/to/output')).toBe('/path/to/output/my document.txt');
+  it('should preserve multiple dots in filename', () => {
+    expect(generateFilePath('file.backup.md', '/output')).toBe('/output/file.backup.md');
+    expect(generateFilePath('config.local.json', '/output')).toBe('/output/config.local.json');
+  });
+
+  it('should sanitize file names while preserving extensions', () => {
+    expect(generateFilePath('doc/with/slashes.md', '/output')).toBe('/output/doc-with-slashes.md');
+    expect(generateFilePath('file*with?special.json', '/output')).toBe('/output/file-with-special.json');
+  });
+
+  it('should handle complex paths with various extensions', () => {
+    expect(generateFilePath('my document.csv', '/path/to/output')).toBe('/path/to/output/my document.csv');
+    expect(generateFilePath('data-file.jsonl', '/output')).toBe('/output/data-file.jsonl');
+  });
+
+  it('should handle edge cases with dots', () => {
+    expect(generateFilePath('.gitignore', '/output')).toBe('/output/.gitignore');
+    expect(generateFilePath('file.', '/output')).toBe('/output/file.');
+    expect(generateFilePath('.hidden.txt', '/output')).toBe('/output/.hidden.txt');
   });
 });
