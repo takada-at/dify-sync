@@ -1,5 +1,5 @@
 // Global test setup
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 
 // Mock environment variables
 process.env.DIFY_API_URL = 'https://test-api.dify.ai/v1';
@@ -18,7 +18,7 @@ global.console = {
 
 // Add basic DOM matchers
 expect.extend({
-  toBeInTheDocument(received) {
+  toBeInTheDocument(received: any) {
     if (received && received.nodeType === 1) {
       return {
         pass: true,
@@ -30,7 +30,7 @@ expect.extend({
       message: () => 'Element is not in the document',
     };
   },
-  toHaveStyle(received, expected) {
+  toHaveStyle(received: any, expected: string | Record<string, any>) {
     if (!received || !received.style) {
       return {
         pass: false,

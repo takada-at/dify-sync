@@ -60,8 +60,38 @@ describe('useDownload', () => {
 
   it('should load documents successfully', async () => {
     const mockDocuments = [
-      { id: '1', name: 'doc1.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
-      { id: '2', name: 'doc2.txt', word_count: 200, created_at: 1640995300, indexing_status: 'completed' },
+      { 
+        id: '1', 
+        name: 'doc1.md', 
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
+      { 
+        id: '2', 
+        name: 'doc2.txt', 
+        position: 1,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995300,
+        tokens: 100,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 200,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
     ];
 
     const mockConfigData = {
@@ -83,9 +113,54 @@ describe('useDownload', () => {
 
   it('should handle multiple files download process', async () => {
     const mockDocuments = [
-      { id: '1', name: 'doc1.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
-      { id: '2', name: 'doc2.txt', word_count: 200, created_at: 1640995300, indexing_status: 'completed' },
-      { id: '3', name: 'doc3.json', word_count: 150, created_at: 1640995400, indexing_status: 'completed' },
+      { 
+        id: '1', 
+        name: 'doc1.md', 
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
+      { 
+        id: '2', 
+        name: 'doc2.txt', 
+        position: 1,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995300,
+        tokens: 100,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 200,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
+      { 
+        id: '3', 
+        name: 'doc3.json', 
+        position: 2,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995400,
+        tokens: 75,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 150,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
     ];
 
     const mockConfigData = {
@@ -138,7 +213,22 @@ describe('useDownload', () => {
 
   it('should handle download progress updates correctly', async () => {
     const mockDocuments = [
-      { id: '1', name: 'doc1.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
+      {
+        id: '1',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'doc1.md'
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
@@ -168,8 +258,38 @@ describe('useDownload', () => {
 
   it('should handle download errors gracefully', async () => {
     const mockDocuments = [
-      { id: '1', name: 'doc1.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
-      { id: '2', name: 'doc2.txt', word_count: 200, created_at: 1640995300, indexing_status: 'completed' },
+      {
+        id: '1',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'doc1.md'
+      },
+      {
+        id: '2',
+        position: 1,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995300,
+        tokens: 100,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 200,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'doc2.txt'
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
@@ -204,7 +324,22 @@ describe('useDownload', () => {
 
   it('should handle file conflicts', async () => {
     const mockDocuments = [
-      { id: '1', name: 'existing-file.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
+      {
+        id: '1',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'existing-file.md'
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
@@ -234,7 +369,22 @@ describe('useDownload', () => {
 
   it('should handle overwrite decision correctly', async () => {
     const mockDocuments = [
-      { id: '1', name: 'conflict-file.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
+      {
+        id: '1',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'conflict-file.md'
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
@@ -280,9 +430,54 @@ describe('useDownload', () => {
 
   it('should process files sequentially', async () => {
     const mockDocuments = [
-      { id: '1', name: 'file1.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
-      { id: '2', name: 'file2.txt', word_count: 200, created_at: 1640995300, indexing_status: 'completed' },
-      { id: '3', name: 'file3.json', word_count: 150, created_at: 1640995400, indexing_status: 'completed' },
+      {
+        id: '1',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'file1.md'
+      },
+      {
+        id: '2',
+        position: 1,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995300,
+        tokens: 100,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 200,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'file2.txt'
+      },
+      {
+        id: '3',
+        position: 2,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995400,
+        tokens: 75,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 150,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'file3.json'
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
@@ -330,7 +525,22 @@ describe('useDownload', () => {
 
   it('should handle API errors during download', async () => {
     const mockDocuments = [
-      { id: '1', name: 'file1.md', word_count: 100, created_at: 1640995200, indexing_status: 'completed' },
+      {
+        id: '1',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model',
+        name: 'file1.md'
+      },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
