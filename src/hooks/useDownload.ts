@@ -1,5 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
-import { Document, DownloadProgress } from '../core/types/index.js';
+import {
+  Document,
+  DownloadProgress as UIDownloadProgress,
+} from '../core/types/index.js';
 import {
   getDocuments,
   getDocumentSegments,
@@ -12,18 +15,20 @@ import {
   type DownloadDependencies,
   type FileConflict,
   type DocumentSegment,
+  type DownloadProgress as CoreDownloadProgress,
 } from '../core/download/index.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 export function useDownload(
   onConflict?: (fileName: string) => void,
-  onError?: (error: string) => void
+  onError?: (error: string) => void,
+  forceOverwrite?: boolean
 ) {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress[]>(
-    []
-  );
+  const [downloadProgress, setDownloadProgress] = useState<
+    UIDownloadProgress[]
+  >([]);
   const [currentDownloadIndex, setCurrentDownloadIndex] = useState<number>(0);
   const [currentDownloadDocuments, setCurrentDownloadDocuments] = useState<
     Document[]
@@ -135,7 +140,7 @@ export function useDownload(
     setCurrentDownloadIndex(0);
     setIsProcessing(true);
 
-    const progress: DownloadProgress[] = selectedDocuments.map(doc => ({
+    const progress: UIDownloadProgress[] = selectedDocuments.map(doc => ({
       fileName: doc.name,
       progress: 0,
       status: 'pending',
@@ -152,6 +157,11 @@ export function useDownload(
         outputDir: selectedDownloadDir,
         overwriteHandler: {
           onConflict: async (conflict: FileConflict) => {
+            // If forceOverwrite is true, automatically overwrite
+            if (forceOverwrite) {
+              return 'overwrite';
+            }
+
             return new Promise<'overwrite' | 'skip'>(resolve => {
               // Store the resolver
               conflictResolverRef.current = (
@@ -172,9 +182,9 @@ export function useDownload(
           setDownloadProgress(prev =>
             prev.map((p, index) => {
               if (index < completed) {
-                return { ...p, status: 'completed', progress: 100 };
+                return { ...p, status: 'completed' as const, progress: 100 };
               } else if (index === completed) {
-                return { ...p, status: 'in-progress', progress: 50 };
+                return { ...p, status: 'in-progress' as const, progress: 50 };
               }
               return p;
             })
@@ -196,10 +206,10 @@ export function useDownload(
             ...p,
             status:
               result.status === 'success'
-                ? 'completed'
+                ? ('completed' as const)
                 : result.status === 'skipped'
-                  ? 'error'
-                  : 'error',
+                  ? ('error' as const)
+                  : ('error' as const),
             progress: result.status === 'success' ? 100 : p.progress,
             error:
               result.error ||

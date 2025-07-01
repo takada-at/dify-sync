@@ -18,9 +18,11 @@ import { Document } from '../core/types/index.js';
 
 interface AppProps {
   uploadPath?: string;
+  downloadPath?: string;
+  forceOverwrite?: boolean;
 }
 
-export function App({ uploadPath }: AppProps) {
+export function App({ uploadPath, downloadPath, forceOverwrite }: AppProps) {
   const {
     state,
     setState,
@@ -51,12 +53,16 @@ export function App({ uploadPath }: AppProps) {
     handleOverwriteDecision,
   } = useDownload(
     fileName => {
-      setConflictFileName(fileName);
-      setState('overwrite-confirm');
+      // Skip conflict callback if forceOverwrite is true
+      if (!forceOverwrite) {
+        setConflictFileName(fileName);
+        setState('overwrite-confirm');
+      }
     },
     error => {
       handleError(error);
-    }
+    },
+    forceOverwrite
   );
 
   // Handle automatic upload when uploadPath is provided
@@ -101,6 +107,50 @@ export function App({ uploadPath }: AppProps) {
       }
     }
   }, [uploadPath, state, uploadProgress]);
+
+  // Handle automatic download when downloadPath is provided
+  useEffect(() => {
+    if (downloadPath) {
+      const startDownload = async () => {
+        try {
+          // Set the download directory
+          setSelectedDownloadDir(downloadPath);
+          // Load documents and start download
+          await loadDocuments();
+          setState('download-document-select');
+        } catch (err) {
+          handleError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to load documents for download'
+          );
+        }
+      };
+      startDownload();
+    }
+  }, [downloadPath]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Exit when download is completed in CLI mode
+  useEffect(() => {
+    if (
+      downloadPath &&
+      state === 'download-progress' &&
+      downloadProgress.length > 0
+    ) {
+      // Check if all downloads are completed or errored
+      const allCompleted = downloadProgress.every(
+        p => p.status === 'completed' || p.status === 'error'
+      );
+
+      if (allCompleted) {
+        // Give a small delay to show the final status
+        const timer = globalThis.setTimeout(() => {
+          globalThis.process.exit(0);
+        }, 1000);
+        return () => globalThis.clearTimeout(timer);
+      }
+    }
+  }, [downloadPath, state, downloadProgress]);
 
   const mainMenuOptions: MenuOption[] = [
     { label: 'Upload files to Dify', value: 'upload' },
@@ -263,6 +313,7 @@ export function App({ uploadPath }: AppProps) {
           title="Select documents to download:"
           onConfirm={handleDownloadDocumentsWrapper}
           onCancel={handleBack}
+          autoConfirm={!!downloadPath}
         />
       )}
 

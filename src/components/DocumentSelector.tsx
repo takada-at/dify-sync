@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { Document } from '../core/types/index.js';
 
@@ -7,6 +7,7 @@ interface DocumentSelectorProps {
   title: string;
   onConfirm: (selectedDocuments: Document[]) => void;
   onCancel: () => void;
+  autoConfirm?: boolean;
 }
 
 export function DocumentSelector({
@@ -14,11 +15,20 @@ export function DocumentSelector({
   title,
   onConfirm,
   onCancel,
+  autoConfirm = false,
 }: DocumentSelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
     new Set(documents.map((_, index) => index))
   );
+
+  // Auto-confirm if the flag is set
+  useEffect(() => {
+    if (autoConfirm && documents.length > 0) {
+      const selected = documents; // Select all documents
+      onConfirm(selected);
+    }
+  }, [autoConfirm, documents, onConfirm]);
 
   useInput((input, key) => {
     if (key.upArrow) {

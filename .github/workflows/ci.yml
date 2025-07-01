@@ -31,7 +31,13 @@ jobs:
         run: npm run typecheck
 
       - name: Check formatting
-        run: npm run format:check
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in root:"
+          ls -la
+          echo "Prettier version:"
+          npx prettier --version
+          npm run format:check
 
       - name: Run tests
         run: npm test

@@ -15,8 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "format": "prettier --write src/**/*.{ts,tsx}",
-    "format:check": "prettier --check src/**/*.{ts,tsx}"
+    "format": "prettier --config .prettierrc --write src/**/*.{ts,tsx}",
+    "format:check": "prettier --config .prettierrc --check src/**/*.{ts,tsx}"
   },
   "keywords": [
     "dify",
