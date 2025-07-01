@@ -1,0 +1,40 @@
+{
+  "name": "dify-sync",
+  "version": "1.0.0",
+  "description": "CLI tool for syncing files with Dify knowledge base",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "dify-sync": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.tsx",
+    "start": "npx tsx src/index.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "dify",
+    "cli",
+    "sync",
+    "knowledge-base"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@inkjs/ui": "^2.0.0",
+    "axios": "^1.6.0",
+    "commander": "^11.1.0",
+    "dotenv": "^16.3.1",
+    "fs-extra": "^11.1.1",
+    "ink": "^6.0.1",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.19.2",
+    "@types/react": "^19.1.8",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
