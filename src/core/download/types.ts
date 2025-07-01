@@ -24,7 +24,11 @@ export interface FileConflict {
 export interface DownloadDependencies {
   fetchDocumentSegments: (documentId: string) => Promise<DocumentSegment[]>;
   checkFileExists: (filePath: string) => Promise<boolean>;
-  saveFile: (filePath: string, content: string, overwrite: boolean) => Promise<void>;
+  saveFile: (
+    filePath: string,
+    content: string,
+    overwrite: boolean
+  ) => Promise<void>;
 }
 
 export interface OverwriteHandler {

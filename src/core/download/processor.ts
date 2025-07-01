@@ -1,9 +1,9 @@
-import type { 
-  Document, 
-  DownloadDependencies, 
-  OverwriteHandler, 
+import type {
+  Document,
+  DownloadDependencies,
+  OverwriteHandler,
   DownloadResult,
-  FileConflict 
+  FileConflict,
 } from './types.js';
 import { combineSegments, generateFilePath } from './document.js';
 
@@ -22,41 +22,41 @@ export function createDownloadProcessor(deps: DownloadDependencies) {
 
     try {
       const fileExists = await deps.checkFileExists(filePath);
-      
+
       if (fileExists) {
         const conflict: FileConflict = {
           documentId: document.id,
           documentName: document.name,
-          filePath
+          filePath,
         };
-        
+
         const decision = await overwriteHandler.onConflict(conflict);
-        
+
         if (decision === 'skip') {
           return {
             documentId: document.id,
             documentName: document.name,
-            status: 'skipped'
+            status: 'skipped',
           };
         }
       }
 
       const segments = await deps.fetchDocumentSegments(document.id);
       const content = combineSegments(segments);
-      
+
       await deps.saveFile(filePath, content, fileExists);
 
       return {
         documentId: document.id,
         documentName: document.name,
-        status: 'success'
+        status: 'success',
       };
     } catch (error) {
       return {
         documentId: document.id,
         documentName: document.name,
         status: 'error',
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   };
@@ -66,34 +66,38 @@ export interface BatchDownloadOptions {
   documents: Document[];
   outputDir: string;
   overwriteHandler: OverwriteHandler;
-  onProgress?: (completed: number, total: number, currentDocument: string) => void;
+  onProgress?: (
+    completed: number,
+    total: number,
+    currentDocument: string
+  ) => void;
 }
 
 export function createBatchDownloadProcessor(deps: DownloadDependencies) {
   const processDownload = createDownloadProcessor(deps);
-  
+
   return async function processBatchDownload(
     options: BatchDownloadOptions
   ): Promise<DownloadResult[]> {
     const { documents, outputDir, overwriteHandler, onProgress } = options;
     const results: DownloadResult[] = [];
-    
+
     for (let i = 0; i < documents.length; i++) {
       const document = documents[i];
-      
+
       if (onProgress) {
         onProgress(i, documents.length, document.name);
       }
-      
+
       const result = await processDownload({
         document,
         outputDir,
-        overwriteHandler
+        overwriteHandler,
       });
-      
+
       results.push(result);
     }
-    
+
     return results;
   };
 }

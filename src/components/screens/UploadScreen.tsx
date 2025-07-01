@@ -10,14 +10,16 @@ interface UploadScreenProps {
 export function UploadScreen({ uploadProgress }: UploadScreenProps) {
   return (
     <Box flexDirection="column">
-      <Text bold color="cyan">Uploading files...</Text>
+      <Text bold color="cyan">
+        Uploading files...
+      </Text>
       {uploadProgress.length === 0 ? (
         <Box>
           <Text color="yellow">No files selected for upload</Text>
           <Text color="gray">Press any key to return to menu</Text>
         </Box>
       ) : (
-        uploadProgress.map((progress) => (
+        uploadProgress.map(progress => (
           <ProgressBar
             key={progress.fileName}
             label={progress.fileName}

@@ -20,7 +20,10 @@ export interface UploadProgress {
 
 export interface UploadDependencies {
   readFileContent: (filePath: string) => Promise<string>;
-  createDocument: (fileName: string, content: string) => Promise<{ id: string }>;
+  createDocument: (
+    fileName: string,
+    content: string
+  ) => Promise<{ id: string }>;
 }
 
 export interface UploadOptions {

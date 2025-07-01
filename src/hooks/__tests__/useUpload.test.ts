@@ -65,13 +65,17 @@ describe('useUpload', () => {
   });
 
   it('should handle directory loading error', async () => {
-    mockFileRepository.getDirectories.mockRejectedValue(new Error('Directory error'));
+    mockFileRepository.getDirectories.mockRejectedValue(
+      new Error('Directory error')
+    );
 
     const { result } = renderHook(() => useUpload());
 
-    await expect(act(async () => {
-      await result.current.loadDirectories();
-    })).rejects.toThrow('Failed to load directories: Directory error');
+    await expect(
+      act(async () => {
+        await result.current.loadDirectories();
+      })
+    ).rejects.toThrow('Failed to load directories: Directory error');
   });
 
   it('should load local files successfully', async () => {
@@ -122,7 +126,9 @@ describe('useUpload', () => {
 
     // Wait for all uploads to complete
     await waitFor(() => {
-      expect(result.current.uploadProgress.every(p => p.status === 'completed')).toBe(true);
+      expect(
+        result.current.uploadProgress.every(p => p.status === 'completed')
+      ).toBe(true);
     });
 
     expect(result.current.uploadProgress).toHaveLength(2);
@@ -141,9 +147,11 @@ describe('useUpload', () => {
       await result.current.handleUploadFiles([]);
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith('No files selected, returning to menu');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'No files selected, returning to menu'
+    );
     expect(result.current.uploadProgress).toEqual([]);
-    
+
     consoleSpy.mockRestore();
   });
 
@@ -159,7 +167,9 @@ describe('useUpload', () => {
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
     mockFs.readFile.mockResolvedValue('content');
-    mockDifyClient.createDocumentFromText.mockRejectedValue(new Error('Upload failed'));
+    mockDifyClient.createDocumentFromText.mockRejectedValue(
+      new Error('Upload failed')
+    );
 
     const { result } = renderHook(() => useUpload());
 
@@ -188,7 +198,9 @@ describe('useUpload', () => {
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
     mockFs.readFile.mockResolvedValue('content');
-    mockDifyClient.createDocumentFromText.mockResolvedValue({ document: { id: 'doc-1' } });
+    mockDifyClient.createDocumentFromText.mockResolvedValue({
+      document: { id: 'doc-1' },
+    });
 
     const { result } = renderHook(() => useUpload());
 

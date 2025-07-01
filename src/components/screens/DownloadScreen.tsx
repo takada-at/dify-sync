@@ -10,8 +10,10 @@ interface DownloadScreenProps {
 export function DownloadScreen({ downloadProgress }: DownloadScreenProps) {
   return (
     <Box flexDirection="column">
-      <Text bold color="cyan">Downloading documents...</Text>
-      {downloadProgress.map((progress) => (
+      <Text bold color="cyan">
+        Downloading documents...
+      </Text>
+      {downloadProgress.map(progress => (
         <ProgressBar
           key={progress.fileName}
           label={progress.fileName}

@@ -11,7 +11,10 @@ export function sanitizeFileName(name: string): string {
   return name.replace(/[/\\?%*:|"<>]/g, '-');
 }
 
-export function generateFilePath(documentName: string, outputDir: string): string {
+export function generateFilePath(
+  documentName: string,
+  outputDir: string
+): string {
   const sanitizedName = sanitizeFileName(documentName);
   return `${outputDir}/${sanitizedName}`;
 }

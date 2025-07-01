@@ -15,10 +15,10 @@ export function filterSupportedFiles(files: string[]): string[] {
 export function createLocalFile(filePath: string, basePath: string): LocalFile {
   const fileName = path.basename(filePath);
   const relativePath = path.relative(basePath, filePath);
-  
+
   return {
     name: fileName,
-    path: relativePath || fileName
+    path: relativePath || fileName,
   };
 }
 

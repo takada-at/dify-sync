@@ -16,14 +16,8 @@ program
     '-u, --upload <path>',
     'Upload files from the specified path recursively'
   )
-  .option(
-    '-d, --download <path>',
-    'Download files to the specified path'
-  )
-  .option(
-    '-f, --force',
-    'Force overwrite existing files without confirmation'
-  )
+  .option('-d, --download <path>', 'Download files to the specified path')
+  .option('-f, --force', 'Force overwrite existing files without confirmation')
   .parse(globalThis.process.argv);
 
 const options = program.opts();

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  isSupportedFile, 
-  filterSupportedFiles, 
+import {
+  isSupportedFile,
+  filterSupportedFiles,
   createLocalFile,
   getFileExtension,
-  isTextFile 
+  isTextFile,
 } from './file.js';
 
 describe('isSupportedFile', () => {
@@ -37,11 +37,16 @@ describe('filterSupportedFiles', () => {
       'readme.md',
       'data.csv',
       'video.mp4',
-      'config.json'
+      'config.json',
     ];
-    
+
     const result = filterSupportedFiles(files);
-    expect(result).toEqual(['doc1.txt', 'readme.md', 'data.csv', 'config.json']);
+    expect(result).toEqual([
+      'doc1.txt',
+      'readme.md',
+      'data.csv',
+      'config.json',
+    ]);
   });
 
   it('should return empty array for no supported files', () => {
@@ -55,7 +60,7 @@ describe('createLocalFile', () => {
     const result = createLocalFile('/home/user/docs/file.txt', '/home/user');
     expect(result).toEqual({
       name: 'file.txt',
-      path: 'docs/file.txt'
+      path: 'docs/file.txt',
     });
   });
 
@@ -63,7 +68,7 @@ describe('createLocalFile', () => {
     const result = createLocalFile('/home/user/file.txt', '/home/user');
     expect(result).toEqual({
       name: 'file.txt',
-      path: 'file.txt'
+      path: 'file.txt',
     });
   });
 

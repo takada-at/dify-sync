@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
-  formatFileSize,
-  isValidFileType 
-} from '../fileRepository.js';
+import { formatFileSize, isValidFileType } from '../fileRepository.js';
 
 // Only test pure functions without mocking complex file operations
 // File system operations will be tested in integration tests
