@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import { ProgressBar } from '../ProgressBar.js';
-import { UploadProgress } from '../../types/index.js';
+import { UploadProgress } from '../../core/types/index.js';
 
 interface UploadScreenProps {
   uploadProgress: UploadProgress[];

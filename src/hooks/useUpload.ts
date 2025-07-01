@@ -1,9 +1,20 @@
-import { useState } from 'react';
-import { LocalFile, getLocalFiles, getDirectories, readFileContent } from '../repositories/fileRepository.js';
-import { UploadProgress } from '../types/index.js';
+import { useState, useCallback } from 'react';
+import {
+  LocalFile,
+  getLocalFiles,
+  getDirectories,
+} from '../repositories/fileRepository.js';
+import { UploadProgress } from '../core/types/index.js';
 import { createDocumentFromText } from '../repositories/difyClient.js';
 import { loadConfig } from '../repositories/config.js';
 import * as logger from '../repositories/logger.js';
+import {
+  createBatchUploadProcessor,
+  calculateUploadStats,
+  type UploadDependencies,
+  type LocalFile as CoreLocalFile,
+} from '../core/upload/index.js';
+import * as fs from 'fs/promises';
 
 export function useUpload() {
   const [localFiles, setLocalFiles] = useState<LocalFile[]>([]);
@@ -15,83 +26,121 @@ export function useUpload() {
       const dirs = await getDirectories('./');
       setDirectories(dirs);
     } catch (err) {
-      throw new Error(`Failed to load directories: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to load directories: ${err instanceof Error ? err.message : 'Unknown error'}`
+      );
     }
   };
 
   const loadLocalFiles = async (dirPath: string, recursive: boolean) => {
     try {
-      const files = await getLocalFiles(dirPath, ['.txt', '.md', '.csv', '.json'], recursive);
+      const files = await getLocalFiles(
+        dirPath,
+        ['.txt', '.md', '.csv', '.json'],
+        recursive
+      );
       setLocalFiles(files);
     } catch (err) {
-      throw new Error(`Failed to load local files: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to load local files: ${err instanceof Error ? err.message : 'Unknown error'}`
+      );
     }
   };
 
+  const createDependencies = useCallback(
+    (): UploadDependencies => ({
+      readFileContent: async (filePath: string): Promise<string> => {
+        const content = await fs.readFile(filePath, 'utf-8');
+        return content;
+      },
+
+      createDocument: async (
+        fileName: string,
+        content: string
+      ): Promise<{ id: string }> => {
+        const config = await loadConfig();
+        const response = await createDocumentFromText(
+          config.datasetId,
+          fileName,
+          content
+        );
+        return { id: response.document.id };
+      },
+    }),
+    []
+  );
+
   const handleUploadFiles = async (selectedFiles: LocalFile[]) => {
     console.log('Starting upload process for', selectedFiles.length, 'files');
-    
+
     if (selectedFiles.length === 0) {
       console.log('No files selected, returning to menu');
       return;
     }
-    
+
     const progress: UploadProgress[] = selectedFiles.map(file => ({
       fileName: file.name,
       progress: 0,
-      status: 'pending'
+      status: 'pending',
     }));
-    
+
     setUploadProgress(progress);
 
     try {
-      console.log('Loading config...');
-      const config = await loadConfig();
-      console.log('Config loaded:', { apiUrl: config.apiUrl, datasetId: config.datasetId });
-      
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        console.log(`Processing file ${i + 1}/${selectedFiles.length}: ${file.name}`);
-        
-        // Update progress to uploading
-        setUploadProgress(prev => prev.map((p, index) => 
-          index === i ? { ...p, status: 'in-progress', progress: 0 } : p
-        ));
+      const deps = createDependencies();
+      const batchProcessor = createBatchUploadProcessor(deps);
 
-        try {
-          console.log('Reading file content...');
-          const content = await readFileContent(file.path);
-          console.log(`File content read, length: ${content.length} characters`);
-          
-          // Simulate progress updates
-          for (let progress = 25; progress <= 75; progress += 25) {
-            setUploadProgress(prev => prev.map((p, index) => 
-              index === i ? { ...p, progress } : p
-            ));
-            await new Promise(resolve => setTimeout(resolve, 200));
+      // Convert LocalFile to CoreLocalFile format
+      const coreFiles: CoreLocalFile[] = selectedFiles.map(file => ({
+        name: file.name,
+        path: file.path,
+        size: file.size,
+      }));
+
+      const results = await batchProcessor({
+        files: coreFiles,
+        onProgress: (fileName: string, progress: number) => {
+          setUploadProgress(prev =>
+            prev.map(p =>
+              p.fileName === fileName
+                ? {
+                    ...p,
+                    progress,
+                    status: progress < 100 ? 'in-progress' : 'completed',
+                  }
+                : p
+            )
+          );
+        },
+        onFileComplete: result => {
+          if (result.status === 'success') {
+            logger.info(`Successfully uploaded: ${result.fileName}`);
+          } else {
+            logger.error(`Failed to upload ${result.fileName}:`, result.error);
           }
 
-          console.log('Calling Dify API...');
-          await createDocumentFromText(config.datasetId, file.name, content);
-          console.log('Upload successful!');
-          
-          // Mark as completed
-          setUploadProgress(prev => prev.map((p, index) => 
-            index === i ? { ...p, status: 'completed', progress: 100 } : p
-          ));
-          
-          logger.info(`Successfully uploaded: ${file.name}`);
-        } catch (err) {
-          console.error(`Error uploading ${file.name}:`, err);
-          setUploadProgress(prev => prev.map((p, index) => 
-            index === i ? { 
-              ...p, 
-              status: 'error', 
-              error: err instanceof Error ? err.message : 'Upload failed' 
-            } : p
-          ));
-          logger.error(`Failed to upload ${file.name}:`, err);
-        }
+          setUploadProgress(prev =>
+            prev.map(p =>
+              p.fileName === result.fileName
+                ? {
+                    ...p,
+                    status: result.status === 'success' ? 'completed' : 'error',
+                    progress: result.status === 'success' ? 100 : p.progress,
+                    error: result.error,
+                  }
+                : p
+            )
+          );
+        },
+      });
+
+      const stats = calculateUploadStats(results);
+      console.log(
+        `Upload completed: ${stats.successful}/${stats.total} successful`
+      );
+
+      if (stats.failed > 0) {
+        console.error('Upload errors:', stats.errors);
       }
     } catch (err) {
       console.error('Upload process error:', err);

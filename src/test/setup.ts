@@ -37,15 +37,15 @@ expect.extend({
         message: () => 'Element does not have style property',
       };
     }
-    
+
     const styles = expected;
     const pass = Object.entries(styles).every(([property, value]) => {
       return received.style[property] === value;
     });
-    
+
     return {
       pass,
-      message: () => pass ? 'Styles match' : 'Styles do not match',
+      message: () => (pass ? 'Styles match' : 'Styles do not match'),
     };
   },
 });

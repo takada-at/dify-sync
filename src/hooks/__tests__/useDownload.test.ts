@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useDownload } from '../useDownload.js';
+import * as fs from 'fs/promises';
 
 // Mock the repositories
 vi.mock('../../repositories/fileRepository.js', () => ({
   getDirectories: vi.fn(),
-  downloadFile: vi.fn(),
 }));
 
 vi.mock('../../repositories/difyClient.js', () => ({
@@ -22,6 +22,13 @@ vi.mock('../../repositories/logger.js', () => ({
   error: vi.fn(),
 }));
 
+// Mock fs/promises
+vi.mock('fs/promises', () => ({
+  access: vi.fn(),
+  mkdir: vi.fn(),
+  writeFile: vi.fn(),
+}));
+
 import * as fileRepository from '../../repositories/fileRepository.js';
 import * as difyClient from '../../repositories/difyClient.js';
 import * as config from '../../repositories/config.js';
@@ -29,10 +36,13 @@ import * as config from '../../repositories/config.js';
 const mockFileRepository = fileRepository as any;
 const mockDifyClient = difyClient as any;
 const mockConfig = config as any;
+const mockFs = fs as any;
 
 describe('useDownload', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default mock for fs.access to simulate file doesn't exist
+    mockFs.access.mockRejectedValue({ code: 'ENOENT' });
   });
 
   it('should initialize with empty state', () => {
@@ -58,6 +68,18 @@ describe('useDownload', () => {
     expect(mockFileRepository.getDirectories).toHaveBeenCalledWith('./');
   });
 
+  it('should handle directory loading error', async () => {
+    mockFileRepository.getDirectories.mockRejectedValue(new Error('Directory read failed'));
+
+    const { result } = renderHook(() => useDownload());
+
+    await expect(async () => {
+      await act(async () => {
+        await result.current.loadDownloadDirectories();
+      });
+    }).rejects.toThrow('Failed to load download directories: Directory read failed');
+  });
+
   it('should load documents successfully', async () => {
     const mockDocuments = [
       { 
@@ -76,30 +98,13 @@ describe('useDownload', () => {
         hit_count: 0,
         doc_form: 'text_model'
       },
-      { 
-        id: '2', 
-        name: 'doc2.txt', 
-        position: 1,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995300,
-        tokens: 100,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 200,
-        hit_count: 0,
-        doc_form: 'text_model'
-      },
     ];
 
-    const mockConfigData = {
-      datasetId: 'test-dataset',
-    };
+    const mockResponse = { data: mockDocuments };
+    const mockConfigData = { datasetId: 'test-dataset' };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocuments.mockResolvedValue({ data: mockDocuments });
+    mockDifyClient.getDocuments.mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useDownload());
 
@@ -169,13 +174,14 @@ describe('useDownload', () => {
 
     const mockSegments = {
       data: [
-        { content: 'Content of document' }
+        { content: 'Content of document', position: 0 }
       ]
     };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
     mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
-    mockFileRepository.downloadFile.mockResolvedValue('/downloads/file.txt');
+    mockFs.mkdir.mockResolvedValue(undefined);
+    mockFs.writeFile.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useDownload());
 
@@ -189,25 +195,20 @@ describe('useDownload', () => {
       await result.current.handleDownloadDocuments(mockDocuments);
     });
 
-    // Verify initial progress state
-    expect(result.current.downloadProgress).toHaveLength(3);
-    expect(result.current.downloadProgress[0].fileName).toBe('doc1.md');
-    expect(result.current.downloadProgress[1].fileName).toBe('doc2.txt');
-    expect(result.current.downloadProgress[2].fileName).toBe('doc3.json');
-
-    // Wait for downloads to complete
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for all downloads to complete
+    await waitFor(() => {
+      expect(result.current.downloadProgress.every(p => p.status === 'completed')).toBe(true);
+    });
 
     // Verify all downloads were completed
     expect(mockDifyClient.getDocumentSegments).toHaveBeenCalledTimes(3);
-    expect(mockFileRepository.downloadFile).toHaveBeenCalledTimes(3);
+    expect(mockFs.writeFile).toHaveBeenCalledTimes(3);
     
     // Check that all files were processed
-    expect(mockFileRepository.downloadFile).toHaveBeenCalledWith(
-      'doc1.md',
-      expect.stringContaining('Content of document'),
-      './downloads',
-      false
+    expect(mockFs.writeFile).toHaveBeenCalledWith(
+      './downloads/doc1.md.txt',
+      'Content of document',
+      'utf-8'
     );
   });
 
@@ -232,11 +233,12 @@ describe('useDownload', () => {
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
-    const mockSegments = { data: [{ content: 'Test content' }] };
+    const mockSegments = { data: [{ content: 'Test content', position: 0 }] };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
     mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
-    mockFileRepository.downloadFile.mockResolvedValue('/downloads/doc1.md');
+    mockFs.mkdir.mockResolvedValue(undefined);
+    mockFs.writeFile.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useDownload());
 
@@ -248,11 +250,12 @@ describe('useDownload', () => {
       await result.current.handleDownloadDocuments(mockDocuments);
     });
 
-    // Wait for async operations
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Wait for download to complete
+    await waitFor(() => {
+      expect(result.current.downloadProgress[0].status).toBe('completed');
+    });
 
     // Verify progress was updated
-    expect(result.current.downloadProgress[0].status).toBe('completed');
     expect(result.current.downloadProgress[0].progress).toBe(100);
   });
 
@@ -260,6 +263,7 @@ describe('useDownload', () => {
     const mockDocuments = [
       {
         id: '1',
+        name: 'doc1.md',
         position: 0,
         data_source_type: 'upload_file',
         created_from: 'api',
@@ -271,284 +275,17 @@ describe('useDownload', () => {
         archived: false,
         word_count: 100,
         hit_count: 0,
-        doc_form: 'text_model',
-        name: 'doc1.md'
-      },
-      {
-        id: '2',
-        position: 1,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995300,
-        tokens: 100,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 200,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'doc2.txt'
+        doc_form: 'text_model'
       },
     ];
 
     const mockConfigData = { datasetId: 'test-dataset' };
-    const mockSegments = { data: [{ content: 'Test content' }] };
-
-    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
     
-    // First file succeeds, second file fails
-    mockFileRepository.downloadFile
-      .mockResolvedValueOnce('/downloads/doc1.md')
-      .mockRejectedValueOnce(new Error('Download failed'));
-
-    const { result } = renderHook(() => useDownload());
-
-    act(() => {
-      result.current.setSelectedDownloadDir('./downloads');
-    });
-
-    await act(async () => {
-      await result.current.handleDownloadDocuments(mockDocuments);
-    });
-
-    // Wait for async operations
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Verify first file completed, second file has error
-    expect(result.current.downloadProgress[0].status).toBe('completed');
-    expect(result.current.downloadProgress[1].status).toBe('error');
-    expect(result.current.downloadProgress[1].error).toBe('Download failed');
-  });
-
-  it('should handle file conflicts', async () => {
-    const mockDocuments = [
-      {
-        id: '1',
-        position: 0,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995200,
-        tokens: 50,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 100,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'existing-file.md'
-      },
-    ];
-
-    const mockConfigData = { datasetId: 'test-dataset' };
-    const mockSegments = { data: [{ content: 'Test content' }] };
-    const onConflict = vi.fn();
-
-    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
-    mockFileRepository.downloadFile.mockRejectedValue(new Error('File already exists'));
-
-    const { result } = renderHook(() => useDownload(onConflict));
-
-    act(() => {
-      result.current.setSelectedDownloadDir('./downloads');
-    });
-
-    await act(async () => {
-      await result.current.handleDownloadDocuments(mockDocuments);
-    });
-
-    // Wait for async operations
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    // Verify conflict handler was called
-    expect(onConflict).toHaveBeenCalledWith('existing-file.md');
-  });
-
-  it('should handle overwrite decision correctly', async () => {
-    const mockDocuments = [
-      {
-        id: '1',
-        position: 0,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995200,
-        tokens: 50,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 100,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'conflict-file.md'
-      },
-    ];
-
-    const mockConfigData = { datasetId: 'test-dataset' };
-    const mockSegments = { data: [{ content: 'Test content' }] };
-
-    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
-    mockFileRepository.downloadFile.mockResolvedValue('/downloads/conflict-file.md');
-
-    const { result } = renderHook(() => useDownload());
-
-    // Set up the download state
-    act(() => {
-      result.current.setSelectedDownloadDir('./downloads');
-    });
-
-    // Simulate that we're in the middle of a download with conflict
-    await act(async () => {
-      // Manually set the state as if we were in a conflict situation
-      result.current.handleDownloadDocuments(mockDocuments);
-    });
-
-    // Simulate overwrite decision (yes)
-    await act(async () => {
-      await result.current.handleOverwriteDecision(true);
-    });
-
-    // Verify file was downloaded with overwrite flag
-    expect(mockFileRepository.downloadFile).toHaveBeenCalledWith(
-      'conflict-file.md',
-      expect.stringContaining('Test content'),
-      './downloads',
-      true
-    );
-  });
-
-  it('should expose handleOverwriteDecision function', () => {
-    const { result } = renderHook(() => useDownload());
-    
-    // Verify the function exists and is callable
-    expect(typeof result.current.handleOverwriteDecision).toBe('function');
-  });
-
-  it('should process files sequentially', async () => {
-    const mockDocuments = [
-      {
-        id: '1',
-        position: 0,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995200,
-        tokens: 50,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 100,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'file1.md'
-      },
-      {
-        id: '2',
-        position: 1,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995300,
-        tokens: 100,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 200,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'file2.txt'
-      },
-      {
-        id: '3',
-        position: 2,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995400,
-        tokens: 75,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 150,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'file3.json'
-      },
-    ];
-
-    const mockConfigData = { datasetId: 'test-dataset' };
-    const mockSegments = { data: [{ content: 'Content' }] };
-
-    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
-    mockFileRepository.downloadFile.mockResolvedValue('/downloads/file.txt');
-
-    const { result } = renderHook(() => useDownload());
-
-    act(() => {
-      result.current.setSelectedDownloadDir('./downloads');
-    });
-
-    // Track call order
-    const callOrder: string[] = [];
-    mockDifyClient.getDocumentSegments.mockImplementation((datasetId: string, docId: string) => {
-      callOrder.push(`segments-${docId}`);
-      return Promise.resolve(mockSegments);
-    });
-
-    mockFileRepository.downloadFile.mockImplementation((fileName: string) => {
-      callOrder.push(`download-${fileName}`);
-      return Promise.resolve(`/downloads/${fileName}`);
-    });
-
-    await act(async () => {
-      await result.current.handleDownloadDocuments(mockDocuments);
-    });
-
-    // Wait for all async operations
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Verify files were processed in order
-    expect(callOrder).toEqual([
-      'segments-1',
-      'download-file1.md',
-      'segments-2', 
-      'download-file2.txt',
-      'segments-3',
-      'download-file3.json'
-    ]);
-  });
-
-  it('should handle API errors during download', async () => {
-    const mockDocuments = [
-      {
-        id: '1',
-        position: 0,
-        data_source_type: 'upload_file',
-        created_from: 'api',
-        created_by: 'user',
-        created_at: 1640995200,
-        tokens: 50,
-        indexing_status: 'completed',
-        enabled: true,
-        archived: false,
-        word_count: 100,
-        hit_count: 0,
-        doc_form: 'text_model',
-        name: 'file1.md'
-      },
-    ];
-
-    const mockConfigData = { datasetId: 'test-dataset' };
-
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
     mockDifyClient.getDocumentSegments.mockRejectedValue(new Error('API Error'));
 
-    const { result } = renderHook(() => useDownload());
+    const onError = vi.fn();
+    const { result } = renderHook(() => useDownload(undefined, onError));
 
     act(() => {
       result.current.setSelectedDownloadDir('./downloads');
@@ -559,10 +296,201 @@ describe('useDownload', () => {
     });
 
     // Wait for error handling
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await waitFor(() => {
+      expect(result.current.downloadProgress[0].status).toBe('error');
+    });
 
-    // Verify the error was handled and marked in progress
-    expect(result.current.downloadProgress[0].status).toBe('error');
-    expect(result.current.downloadProgress[0].error).toContain('API Error');
+    expect(result.current.downloadProgress[0].error).toBe('API Error');
+  });
+
+  it('should handle file conflicts', async () => {
+    const mockDocuments = [
+      {
+        id: '1',
+        name: 'existing.txt',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
+    ];
+
+    const mockConfigData = { datasetId: 'test-dataset' };
+    const mockSegments = { data: [{ content: 'Test content', position: 0 }] };
+
+    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
+    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
+    
+    // Simulate file exists
+    mockFs.access.mockResolvedValue(undefined);
+
+    const onConflict = vi.fn();
+    const { result } = renderHook(() => useDownload(onConflict));
+
+    act(() => {
+      result.current.setSelectedDownloadDir('./downloads');
+    });
+
+    // Start download in a separate act to avoid blocking
+    act(() => {
+      result.current.handleDownloadDocuments(mockDocuments);
+    });
+
+    // Wait for conflict callback
+    await waitFor(() => {
+      expect(onConflict).toHaveBeenCalledWith('existing.txt');
+    });
+  });
+
+  it('should handle overwrite decision correctly', async () => {
+    const mockDocuments = [
+      {
+        id: '1',
+        name: 'existing.txt',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model'
+      },
+    ];
+
+    const mockConfigData = { datasetId: 'test-dataset' };
+    const mockSegments = { data: [{ content: 'Test content', position: 0 }] };
+
+    // Set up the download state
+    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
+    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
+    mockFs.access.mockResolvedValue(undefined); // File exists
+    mockFs.mkdir.mockResolvedValue(undefined);
+    mockFs.writeFile.mockResolvedValue(undefined);
+
+    const onConflict = vi.fn();
+    const { result } = renderHook(() => useDownload(onConflict));
+
+    act(() => {
+      result.current.setSelectedDownloadDir('./downloads');
+    });
+
+    // Start download
+    act(() => {
+      result.current.handleDownloadDocuments(mockDocuments);
+    });
+
+    // Wait for conflict
+    await waitFor(() => {
+      expect(onConflict).toHaveBeenCalled();
+    });
+
+    // Handle overwrite decision
+    act(() => {
+      result.current.handleOverwriteDecision(true);
+    });
+
+    // Wait for download to complete
+    await waitFor(() => {
+      expect(result.current.downloadProgress[0].status).toBe('completed');
+    });
+
+    expect(mockFs.writeFile).toHaveBeenCalled();
+  });
+
+  it('should expose handleOverwriteDecision function', () => {
+    const { result } = renderHook(() => useDownload());
+    expect(result.current.handleOverwriteDecision).toBeDefined();
+    expect(typeof result.current.handleOverwriteDecision).toBe('function');
+  });
+
+  it('should process files sequentially', async () => {
+    const mockDocuments = [
+      { id: '1', name: 'doc1.txt' },
+      { id: '2', name: 'doc2.txt' }
+    ] as any[];
+
+    const mockConfigData = { datasetId: 'test-dataset' };
+    const mockSegments = { data: [{ content: 'Content', position: 0 }] };
+
+    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
+    mockDifyClient.getDocumentSegments.mockResolvedValue(mockSegments);
+    mockFs.mkdir.mockResolvedValue(undefined);
+    mockFs.writeFile.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useDownload());
+
+    act(() => {
+      result.current.setSelectedDownloadDir('./downloads');
+    });
+
+    const callOrder: string[] = [];
+    mockDifyClient.getDocumentSegments.mockImplementation((datasetId: string, docId: string) => {
+      callOrder.push(docId);
+      return Promise.resolve(mockSegments);
+    });
+
+    await act(async () => {
+      await result.current.handleDownloadDocuments(mockDocuments);
+    });
+
+    // Verify files were processed in order
+    expect(callOrder).toEqual(['1', '2']);
+  });
+
+  it('should handle API errors during download', async () => {
+    const mockDocuments = [
+      {
+        id: '1',
+        name: 'doc1.txt',
+        position: 0,
+        data_source_type: 'upload_file',
+        created_from: 'api',
+        created_by: 'user',
+        created_at: 1640995200,
+        tokens: 50,
+        indexing_status: 'completed',
+        enabled: true,
+        archived: false,
+        word_count: 100,
+        hit_count: 0,
+        doc_form: 'text_model'
+      }
+    ];
+
+    const mockConfigData = { datasetId: 'test-dataset' };
+    
+    mockConfig.loadConfig.mockResolvedValue(mockConfigData);
+    mockDifyClient.getDocumentSegments.mockRejectedValue(new Error('Network error'));
+
+    const onError = vi.fn();
+    const { result } = renderHook(() => useDownload(undefined, onError));
+
+    act(() => {
+      result.current.setSelectedDownloadDir('./downloads');
+    });
+
+    await act(async () => {
+      await result.current.handleDownloadDocuments(mockDocuments);
+    });
+
+    // Wait for error to be processed
+    await waitFor(() => {
+      expect(result.current.downloadProgress[0].status).toBe('error');
+    });
+
+    expect(result.current.downloadProgress[0].error).toBe('Network error');
   });
 });

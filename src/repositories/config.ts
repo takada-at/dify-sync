@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { config } from 'dotenv';
-import { DifyConfig } from '../types/index.js';
+import { DifyConfig } from '../core/types/index.js';
 
 config();
 
@@ -17,11 +17,15 @@ export async function loadConfig(): Promise<DifyConfig> {
   const datasetId = process.env.DIFY_DATASET_ID;
 
   if (!apiKey) {
-    throw new Error('DIFY_API_KEY is required. Please set it in your .env file.');
+    throw new Error(
+      'DIFY_API_KEY is required. Please set it in your .env file.'
+    );
   }
 
   if (!datasetId) {
-    throw new Error('DIFY_DATASET_ID is required. Please set it in your .env file.');
+    throw new Error(
+      'DIFY_DATASET_ID is required. Please set it in your .env file.'
+    );
   }
 
   configCache = {

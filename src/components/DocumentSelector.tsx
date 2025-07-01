@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
-import { Document } from '../types/index.js';
+import { Document } from '../core/types/index.js';
 
 interface DocumentSelectorProps {
   documents: Document[];
@@ -9,7 +9,12 @@ interface DocumentSelectorProps {
   onCancel: () => void;
 }
 
-export function DocumentSelector({ documents, title, onConfirm, onCancel }: DocumentSelectorProps) {
+export function DocumentSelector({
+  documents,
+  title,
+  onConfirm,
+  onCancel,
+}: DocumentSelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
     new Set(documents.map((_, index) => index))
@@ -37,7 +42,9 @@ export function DocumentSelector({ documents, title, onConfirm, onCancel }: Docu
       // Deselect all
       setSelectedDocuments(new Set());
     } else if (key.return) {
-      const selected = Array.from(selectedDocuments).map(index => documents[index]);
+      const selected = Array.from(selectedDocuments).map(
+        index => documents[index]
+      );
       onConfirm(selected);
     } else if (key.escape) {
       onCancel();
@@ -50,18 +57,25 @@ export function DocumentSelector({ documents, title, onConfirm, onCancel }: Docu
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'green';
-      case 'indexing': return 'yellow';
-      case 'waiting': return 'gray';
-      case 'error': return 'red';
-      default: return 'white';
+      case 'completed':
+        return 'green';
+      case 'indexing':
+        return 'yellow';
+      case 'waiting':
+        return 'gray';
+      case 'error':
+        return 'red';
+      default:
+        return 'white';
     }
   };
 
   if (documents.length === 0) {
     return (
       <Box flexDirection="column" padding={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
         <Text color="yellow">No documents found</Text>
         <Text color="gray">Press Escape to go back</Text>
       </Box>
@@ -71,9 +85,11 @@ export function DocumentSelector({ documents, title, onConfirm, onCancel }: Docu
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
       </Box>
-      
+
       {documents.map((doc, index) => (
         <Box key={doc.id} marginLeft={1} flexDirection="column">
           <Box>
@@ -93,13 +109,12 @@ export function DocumentSelector({ documents, title, onConfirm, onCancel }: Docu
           </Box>
         </Box>
       ))}
-      
+
       <Box marginTop={1} flexDirection="column">
-        <Text color="green">
-          Selected: {selectedDocuments.size} documents
-        </Text>
+        <Text color="green">Selected: {selectedDocuments.size} documents</Text>
         <Text color="gray">
-          Space: Select/Deselect, A: Select All, D: Deselect All, ↑↓: Navigate, Enter: Confirm, Esc: Cancel
+          Space: Select/Deselect, A: Select All, D: Deselect All, ↑↓: Navigate,
+          Enter: Confirm, Esc: Cancel
         </Text>
       </Box>
     </Box>

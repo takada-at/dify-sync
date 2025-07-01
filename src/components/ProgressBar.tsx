@@ -9,22 +9,35 @@ interface ProgressBarProps {
   error?: string;
 }
 
-export function ProgressBar({ label, progress, status, error }: ProgressBarProps) {
+export function ProgressBar({
+  label,
+  progress,
+  status,
+  error,
+}: ProgressBarProps) {
   const getStatusColor = () => {
     switch (status) {
-      case 'completed': return 'green';
-      case 'error': return 'red';
-      case 'in-progress': return 'yellow';
-      default: return 'gray';
+      case 'completed':
+        return 'green';
+      case 'error':
+        return 'red';
+      case 'in-progress':
+        return 'yellow';
+      default:
+        return 'gray';
     }
   };
 
   const getStatusSymbol = () => {
     switch (status) {
-      case 'completed': return '✓';
-      case 'error': return '✗';
-      case 'in-progress': return '◐';
-      default: return '○';
+      case 'completed':
+        return '✓';
+      case 'error':
+        return '✗';
+      case 'in-progress':
+        return '◐';
+      default:
+        return '○';
     }
   };
 
@@ -35,18 +48,16 @@ export function ProgressBar({ label, progress, status, error }: ProgressBarProps
           {getStatusSymbol()} {label}
         </Text>
       </Box>
-      
+
       {status === 'in-progress' && (
         <Box marginLeft={2}>
           <InkProgressBar value={progress} />
         </Box>
       )}
-      
+
       {error && (
         <Box marginLeft={2}>
-          <Text color="red">
-            Error: {error}
-          </Text>
+          <Text color="red">Error: {error}</Text>
         </Box>
       )}
     </Box>

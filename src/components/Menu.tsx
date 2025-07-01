@@ -28,9 +28,11 @@ export function Menu({ title, options, onSelect }: MenuProps) {
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
       </Box>
-      
+
       {options.map((option, index) => (
         <Box key={option.value} marginLeft={2}>
           <Text color={index === selectedIndex ? 'green' : 'white'}>
@@ -39,11 +41,9 @@ export function Menu({ title, options, onSelect }: MenuProps) {
           </Text>
         </Box>
       ))}
-      
+
       <Box marginTop={1}>
-        <Text color="gray">
-          Use ↑↓ arrows to navigate, Enter to select
-        </Text>
+        <Text color="gray">Use ↑↓ arrows to navigate, Enter to select</Text>
       </Box>
     </Box>
   );

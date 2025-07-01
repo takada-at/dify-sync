@@ -9,11 +9,16 @@ let logLevel: LogLevel;
 
 function parseLogLevel(level: string): LogLevel {
   switch (level) {
-    case 'error': return LogLevel.ERROR;
-    case 'warn': return LogLevel.WARN;
-    case 'info': return LogLevel.INFO;
-    case 'debug': return LogLevel.DEBUG;
-    default: return LogLevel.INFO;
+    case 'error':
+      return LogLevel.ERROR;
+    case 'warn':
+      return LogLevel.WARN;
+    case 'info':
+      return LogLevel.INFO;
+    case 'debug':
+      return LogLevel.DEBUG;
+    default:
+      return LogLevel.INFO;
   }
 }
 

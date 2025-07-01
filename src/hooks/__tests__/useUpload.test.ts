@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useUpload } from '../useUpload.js';
+import * as fs from 'fs/promises';
 
 // Mock the repositories
 vi.mock('../../repositories/fileRepository.js', () => ({
@@ -22,6 +23,11 @@ vi.mock('../../repositories/logger.js', () => ({
   error: vi.fn(),
 }));
 
+// Mock fs/promises
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn(),
+}));
+
 import * as fileRepository from '../../repositories/fileRepository.js';
 import * as difyClient from '../../repositories/difyClient.js';
 import * as config from '../../repositories/config.js';
@@ -29,6 +35,7 @@ import * as config from '../../repositories/config.js';
 const mockFileRepository = fileRepository as any;
 const mockDifyClient = difyClient as any;
 const mockConfig = config as any;
+const mockFs = fs as any;
 
 describe('useUpload', () => {
   beforeEach(() => {
@@ -100,17 +107,22 @@ describe('useUpload', () => {
     };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockFileRepository.readFileContent
+    mockFs.readFile
       .mockResolvedValueOnce('content1')
       .mockResolvedValueOnce('content2');
     mockDifyClient.createDocumentFromText
-      .mockResolvedValueOnce({ success: true })
-      .mockResolvedValueOnce({ success: true });
+      .mockResolvedValueOnce({ document: { id: 'doc-1' } })
+      .mockResolvedValueOnce({ document: { id: 'doc-2' } });
 
     const { result } = renderHook(() => useUpload());
 
     await act(async () => {
       await result.current.handleUploadFiles(mockFiles);
+    });
+
+    // Wait for all uploads to complete
+    await waitFor(() => {
+      expect(result.current.uploadProgress.every(p => p.status === 'completed')).toBe(true);
     });
 
     expect(result.current.uploadProgress).toHaveLength(2);
@@ -146,7 +158,7 @@ describe('useUpload', () => {
     };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockFileRepository.readFileContent.mockResolvedValue('content');
+    mockFs.readFile.mockResolvedValue('content');
     mockDifyClient.createDocumentFromText.mockRejectedValue(new Error('Upload failed'));
 
     const { result } = renderHook(() => useUpload());
@@ -155,8 +167,12 @@ describe('useUpload', () => {
       await result.current.handleUploadFiles(mockFiles);
     });
 
+    // Wait for error to be processed
+    await waitFor(() => {
+      expect(result.current.uploadProgress[0].status).toBe('error');
+    });
+
     expect(result.current.uploadProgress).toHaveLength(1);
-    expect(result.current.uploadProgress[0].status).toBe('error');
     expect(result.current.uploadProgress[0].error).toBe('Upload failed');
   });
 
@@ -171,22 +187,20 @@ describe('useUpload', () => {
     };
 
     mockConfig.loadConfig.mockResolvedValue(mockConfigData);
-    mockFileRepository.readFileContent.mockResolvedValue('content');
-    mockDifyClient.createDocumentFromText.mockResolvedValue({ success: true });
+    mockFs.readFile.mockResolvedValue('content');
+    mockDifyClient.createDocumentFromText.mockResolvedValue({ document: { id: 'doc-1' } });
 
     const { result } = renderHook(() => useUpload());
 
-    let progressUpdates: number[] = [];
-    
     await act(async () => {
-      // Start upload and capture progress updates
-      const uploadPromise = result.current.handleUploadFiles(mockFiles);
-      
-      // Wait for the upload to complete
-      await uploadPromise;
+      await result.current.handleUploadFiles(mockFiles);
+    });
+
+    // Wait for upload to complete
+    await waitFor(() => {
+      expect(result.current.uploadProgress[0].status).toBe('completed');
     });
 
     expect(result.current.uploadProgress[0].progress).toBe(100);
-    expect(result.current.uploadProgress[0].status).toBe('completed');
   });
 });

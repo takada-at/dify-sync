@@ -14,7 +14,7 @@ import { useAppState } from '../hooks/useAppState.js';
 import { useUpload } from '../hooks/useUpload.js';
 import { useDownload } from '../hooks/useDownload.js';
 import { LocalFile } from '../repositories/fileRepository.js';
-import { Document } from '../types/index.js';
+import { Document } from '../core/types/index.js';
 
 export function App() {
   const {
@@ -47,11 +47,11 @@ export function App() {
     handleDownloadDocuments,
     handleOverwriteDecision,
   } = useDownload(
-    (fileName) => {
+    fileName => {
       setConflictFileName(fileName);
       setState('overwrite-confirm');
     },
-    (error) => {
+    error => {
       handleError(error);
     }
   );
@@ -82,19 +82,20 @@ export function App() {
           break;
       }
     } catch (err) {
-      handleError(err instanceof Error ? err.message : 'Unknown error occurred');
+      handleError(
+        err instanceof Error ? err.message : 'Unknown error occurred'
+      );
     }
   };
-
 
   const handleUploadFilesWrapper = async (selectedFiles: LocalFile[]) => {
     if (selectedFiles.length === 0) {
       setState('menu');
       return;
     }
-    
+
     setState('upload-progress');
-    
+
     try {
       await handleUploadFiles(selectedFiles);
     } catch (err) {
@@ -102,17 +103,26 @@ export function App() {
     }
   };
 
-  const handleDownloadDocumentsWrapper = async (selectedDocuments: Document[]) => {
+  const handleDownloadDocumentsWrapper = async (
+    selectedDocuments: Document[]
+  ) => {
     setState('download-progress');
     await handleDownloadDocuments(selectedDocuments);
   };
 
-  const handleDirectorySelect = async (selectedPath: string, recursive: boolean) => {
+  const handleDirectorySelect = async (
+    selectedPath: string,
+    recursive: boolean
+  ) => {
     try {
       await loadLocalFiles(selectedPath, recursive);
       setState('upload-file-select');
     } catch (err) {
-      handleError(err instanceof Error ? err.message : 'Failed to load files from directory');
+      handleError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to load files from directory'
+      );
     }
   };
 
@@ -123,22 +133,32 @@ export function App() {
       await loadDocuments();
       setState('download-document-select');
     } catch (err) {
-      handleError(err instanceof Error ? err.message : 'Failed to load documents');
+      handleError(
+        err instanceof Error ? err.message : 'Failed to load documents'
+      );
     }
   };
 
   const handleOverwriteDecisionWrapper = async (overwrite: boolean) => {
     setState('download-progress');
-    
+
     try {
       await handleOverwriteDecision(overwrite);
     } catch (err) {
-      handleError(err instanceof Error ? err.message : 'Download process failed');
+      handleError(
+        err instanceof Error ? err.message : 'Download process failed'
+      );
     }
   };
 
   useInput((input, key) => {
-    if (key.escape && (state === 'upload-progress' || state === 'download-progress' || state === 'error' || state === 'settings')) {
+    if (
+      key.escape &&
+      (state === 'upload-progress' ||
+        state === 'download-progress' ||
+        state === 'error' ||
+        state === 'settings')
+    ) {
       handleBack();
     }
   });
@@ -146,7 +166,9 @@ export function App() {
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="magenta">🔄 Dify Sync</Text>
+        <Text bold color="magenta">
+          🔄 Dify Sync
+        </Text>
       </Box>
 
       {state === 'menu' && (
@@ -201,9 +223,7 @@ export function App() {
         <DownloadScreen downloadProgress={downloadProgress} />
       )}
 
-      {state === 'settings' && (
-        <SettingsScreen />
-      )}
+      {state === 'settings' && <SettingsScreen />}
 
       {state === 'overwrite-confirm' && (
         <OverwriteConfirm
@@ -212,9 +232,7 @@ export function App() {
         />
       )}
 
-      {state === 'error' && (
-        <ErrorScreen error={error} />
-      )}
+      {state === 'error' && <ErrorScreen error={error} />}
     </Box>
   );
 }

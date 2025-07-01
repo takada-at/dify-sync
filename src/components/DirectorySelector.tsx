@@ -8,14 +8,19 @@ interface DirectorySelectorProps {
   onCancel: () => void;
 }
 
-export function DirectorySelector({ directories, title, onConfirm, onCancel }: DirectorySelectorProps) {
+export function DirectorySelector({
+  directories,
+  title,
+  onConfirm,
+  onCancel,
+}: DirectorySelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recursive, setRecursive] = useState(false);
-  
+
   // Add current directory and available subdirectories to options
   const options = [
     { label: '. (current directory)', value: '.' },
-    ...directories.map(dir => ({ label: dir, value: dir }))
+    ...directories.map(dir => ({ label: dir, value: dir })),
   ];
 
   useInput((input, key) => {
@@ -35,7 +40,9 @@ export function DirectorySelector({ directories, title, onConfirm, onCancel }: D
   if (options.length === 0) {
     return (
       <Box flexDirection="column" padding={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
         <Text color="yellow">No directories found</Text>
         <Text color="gray">Press Escape to go back</Text>
       </Box>
@@ -45,15 +52,20 @@ export function DirectorySelector({ directories, title, onConfirm, onCancel }: D
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="cyan">{title}</Text>
-      </Box>
-      
-      <Box marginBottom={1}>
-        <Text color="yellow">
-          Recursive mode: {recursive ? 'ON (includes subdirectories)' : 'OFF (current directory only)'}
+        <Text bold color="cyan">
+          {title}
         </Text>
       </Box>
-      
+
+      <Box marginBottom={1}>
+        <Text color="yellow">
+          Recursive mode:{' '}
+          {recursive
+            ? 'ON (includes subdirectories)'
+            : 'OFF (current directory only)'}
+        </Text>
+      </Box>
+
       {options.map((option, index) => (
         <Box key={option.value} marginLeft={1}>
           <Text color={index === selectedIndex ? 'green' : 'white'}>
@@ -62,7 +74,7 @@ export function DirectorySelector({ directories, title, onConfirm, onCancel }: D
           </Text>
         </Box>
       ))}
-      
+
       <Box marginTop={1} flexDirection="column">
         <Text color="gray">
           ↑↓: Navigate, R: Toggle recursive mode, Enter: Select, Esc: Cancel

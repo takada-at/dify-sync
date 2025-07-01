@@ -6,7 +6,10 @@ interface OverwriteConfirmProps {
   onConfirm: (overwrite: boolean) => void;
 }
 
-export function OverwriteConfirm({ fileName, onConfirm }: OverwriteConfirmProps) {
+export function OverwriteConfirm({
+  fileName,
+  onConfirm,
+}: OverwriteConfirmProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const options = ['Yes, overwrite', 'No, skip this file'];
 
@@ -21,21 +24,28 @@ export function OverwriteConfirm({ fileName, onConfirm }: OverwriteConfirmProps)
   });
 
   return (
-    <Box flexDirection="column" padding={1} borderStyle="round" borderColor="yellow">
+    <Box
+      flexDirection="column"
+      padding={1}
+      borderStyle="round"
+      borderColor="yellow"
+    >
       <Box marginBottom={1}>
-        <Text color="yellow" bold>File Conflict</Text>
+        <Text color="yellow" bold>
+          File Conflict
+        </Text>
       </Box>
-      
+
       <Box marginBottom={1}>
         <Text>
           File <Text color="cyan">{fileName}</Text> already exists.
         </Text>
       </Box>
-      
+
       <Box marginBottom={1}>
         <Text>Do you want to overwrite it?</Text>
       </Box>
-      
+
       {options.map((option, index) => (
         <Box key={index} marginLeft={2}>
           <Text color={index === selectedIndex ? 'green' : 'white'}>
@@ -44,7 +54,7 @@ export function OverwriteConfirm({ fileName, onConfirm }: OverwriteConfirmProps)
           </Text>
         </Box>
       ))}
-      
+
       <Box marginTop={1}>
         <Text color="gray">
           Use ↑↓ or ←→ arrows to navigate, Enter to confirm

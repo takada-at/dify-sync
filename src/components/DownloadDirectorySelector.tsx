@@ -8,13 +8,18 @@ interface DownloadDirectorySelectorProps {
   onCancel: () => void;
 }
 
-export function DownloadDirectorySelector({ directories, title, onConfirm, onCancel }: DownloadDirectorySelectorProps) {
+export function DownloadDirectorySelector({
+  directories,
+  title,
+  onConfirm,
+  onCancel,
+}: DownloadDirectorySelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  
+
   // Add current directory and available subdirectories to options
   const options = [
     { label: '. (current directory)', value: '.' },
-    ...directories.map(dir => ({ label: dir, value: dir }))
+    ...directories.map(dir => ({ label: dir, value: dir })),
   ];
 
   useInput((input, key) => {
@@ -32,7 +37,9 @@ export function DownloadDirectorySelector({ directories, title, onConfirm, onCan
   if (options.length === 0) {
     return (
       <Box flexDirection="column" padding={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
         <Text color="yellow">No directories found</Text>
         <Text color="gray">Press Escape to go back</Text>
       </Box>
@@ -42,15 +49,17 @@ export function DownloadDirectorySelector({ directories, title, onConfirm, onCan
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
       </Box>
-      
+
       <Box marginBottom={1}>
         <Text color="yellow">
           Files will be downloaded to the selected directory
         </Text>
       </Box>
-      
+
       {options.map((option, index) => (
         <Box key={option.value} marginLeft={1}>
           <Text color={index === selectedIndex ? 'green' : 'white'}>
@@ -59,11 +68,9 @@ export function DownloadDirectorySelector({ directories, title, onConfirm, onCan
           </Text>
         </Box>
       ))}
-      
+
       <Box marginTop={1} flexDirection="column">
-        <Text color="gray">
-          ↑↓: Navigate, Enter: Select, Esc: Cancel
-        </Text>
+        <Text color="gray">↑↓: Navigate, Enter: Select, Esc: Cancel</Text>
       </Box>
     </Box>
   );

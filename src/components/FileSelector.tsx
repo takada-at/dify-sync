@@ -9,7 +9,12 @@ interface FileSelectorProps {
   onCancel: () => void;
 }
 
-export function FileSelector({ files, title, onConfirm, onCancel }: FileSelectorProps) {
+export function FileSelector({
+  files,
+  title,
+  onConfirm,
+  onCancel,
+}: FileSelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(
     new Set(files.map((_, index) => index))
@@ -47,15 +52,17 @@ export function FileSelector({ files, title, onConfirm, onCancel }: FileSelector
   const formatFileSize = (bytes: number): string => {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 B';
-    
+
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   if (files.length === 0) {
     return (
       <Box flexDirection="column" padding={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
         <Text color="yellow">No files found</Text>
         <Text color="gray">Press Escape to go back</Text>
       </Box>
@@ -65,28 +72,27 @@ export function FileSelector({ files, title, onConfirm, onCancel }: FileSelector
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="cyan">{title}</Text>
+        <Text bold color="cyan">
+          {title}
+        </Text>
       </Box>
-      
+
       {files.map((file, index) => (
         <Box key={file.path} marginLeft={1}>
           <Text color={index === selectedIndex ? 'green' : 'white'}>
             {selectedFiles.has(index) ? '☑' : '☐'} {file.name}
           </Text>
           <Box marginLeft={1}>
-            <Text color="gray">
-              ({formatFileSize(file.size)})
-            </Text>
+            <Text color="gray">({formatFileSize(file.size)})</Text>
           </Box>
         </Box>
       ))}
-      
+
       <Box marginTop={1} flexDirection="column">
-        <Text color="green">
-          Selected: {selectedFiles.size} files
-        </Text>
+        <Text color="green">Selected: {selectedFiles.size} files</Text>
         <Text color="gray">
-          Space: Select/Deselect, A: Select All, D: Deselect All, ↑↓: Navigate, Enter: Confirm, Esc: Cancel
+          Space: Select/Deselect, A: Select All, D: Deselect All, ↑↓: Navigate,
+          Enter: Confirm, Esc: Cancel
         </Text>
       </Box>
     </Box>

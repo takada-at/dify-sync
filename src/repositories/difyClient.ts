@@ -1,6 +1,13 @@
 import axios, { AxiosInstance } from 'axios';
 import { promises as fs } from 'fs';
-import { DifyConfig, Dataset, Document, CreateDocumentResponse, DocumentListResponse, DatasetListResponse } from '../types/index.js';
+import {
+  DifyConfig,
+  Dataset,
+  Document,
+  CreateDocumentResponse,
+  DocumentListResponse,
+  DatasetListResponse,
+} from '../core/types/index.js';
 import { loadConfig } from './config.js';
 import * as logger from './logger.js';
 
@@ -12,33 +19,38 @@ async function getAxiosInstance(): Promise<AxiosInstance> {
   }
 
   const config = await loadConfig();
-  
+
   axiosInstance = axios.create({
     baseURL: config.apiUrl,
     headers: {
-      'Authorization': `Bearer ${config.apiKey}`,
+      Authorization: `Bearer ${config.apiKey}`,
       'Content-Type': 'application/json',
     },
   });
 
   axiosInstance.interceptors.request.use(
-    (config) => {
-      logger.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    config => {
+      logger.debug(
+        `API Request: ${config.method?.toUpperCase()} ${config.url}`
+      );
       return config;
     },
-    (error) => {
+    error => {
       logger.error('API Request Error:', error);
       return Promise.reject(error);
     }
   );
 
   axiosInstance.interceptors.response.use(
-    (response) => {
+    response => {
       logger.debug(`API Response: ${response.status} ${response.config.url}`);
       return response;
     },
-    (error) => {
-      logger.error('API Response Error:', error.response?.data || error.message);
+    error => {
+      logger.error(
+        'API Response Error:',
+        error.response?.data || error.message
+      );
       return Promise.reject(error);
     }
   );
@@ -46,9 +58,14 @@ async function getAxiosInstance(): Promise<AxiosInstance> {
   return axiosInstance;
 }
 
-export async function getDatasets(page: number = 1, limit: number = 20): Promise<DatasetListResponse> {
+export async function getDatasets(
+  page: number = 1,
+  limit: number = 20
+): Promise<DatasetListResponse> {
   const client = await getAxiosInstance();
-  const response = await client.get<DatasetListResponse>(`/datasets?page=${page}&limit=${limit}`);
+  const response = await client.get<DatasetListResponse>(
+    `/datasets?page=${page}&limit=${limit}`
+  );
   return response.data;
 }
 
@@ -58,7 +75,10 @@ export async function getDataset(datasetId: string): Promise<Dataset> {
   return response.data;
 }
 
-export async function createDataset(name: string, permission: string = 'only_me'): Promise<Dataset> {
+export async function createDataset(
+  name: string,
+  permission: string = 'only_me'
+): Promise<Dataset> {
   const client = await getAxiosInstance();
   const response = await client.post<Dataset>('/datasets', {
     name,
@@ -72,9 +92,15 @@ export async function deleteDataset(datasetId: string): Promise<void> {
   await client.delete(`/datasets/${datasetId}`);
 }
 
-export async function getDocuments(datasetId: string, page: number = 1, limit: number = 20): Promise<DocumentListResponse> {
+export async function getDocuments(
+  datasetId: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<DocumentListResponse> {
   const client = await getAxiosInstance();
-  const response = await client.get<DocumentListResponse>(`/datasets/${datasetId}/documents?page=${page}&limit=${limit}`);
+  const response = await client.get<DocumentListResponse>(
+    `/datasets/${datasetId}/documents?page=${page}&limit=${limit}`
+  );
   return response.data;
 }
 
@@ -85,15 +111,18 @@ export async function createDocumentFromText(
   indexingTechnique: string = 'high_quality'
 ): Promise<CreateDocumentResponse> {
   const client = await getAxiosInstance();
-  
-  console.log('Making API call to:', `/datasets/${datasetId}/document/create-by-text`);
+
+  console.log(
+    'Making API call to:',
+    `/datasets/${datasetId}/document/create-by-text`
+  );
   console.log('Request payload:', {
     name,
     text: text.substring(0, 100) + '...',
     indexing_technique: indexingTechnique,
-    process_rule: { mode: 'automatic' }
+    process_rule: { mode: 'automatic' },
   });
-  
+
   const response = await client.post<CreateDocumentResponse>(
     `/datasets/${datasetId}/document/create-by-text`,
     {
@@ -117,7 +146,12 @@ export async function createDocumentFromFile(
   // For now, we'll use text-based upload
   const content = await fs.readFile(filePath, 'utf-8');
   const fileName = filePath.split('/').pop() || 'file';
-  return createDocumentFromText(datasetId, fileName, content, indexingTechnique);
+  return createDocumentFromText(
+    datasetId,
+    fileName,
+    content,
+    indexingTechnique
+  );
 }
 
 export async function updateDocumentWithText(
@@ -151,19 +185,32 @@ export async function updateDocumentWithFile(
   return updateDocumentWithText(datasetId, documentId, fileName, content);
 }
 
-export async function deleteDocument(datasetId: string, documentId: string): Promise<void> {
+export async function deleteDocument(
+  datasetId: string,
+  documentId: string
+): Promise<void> {
   const client = await getAxiosInstance();
   await client.delete(`/datasets/${datasetId}/documents/${documentId}`);
 }
 
-export async function getDocumentIndexingStatus(datasetId: string, batch: string): Promise<any> {
+export async function getDocumentIndexingStatus(
+  datasetId: string,
+  batch: string
+): Promise<any> {
   const client = await getAxiosInstance();
-  const response = await client.get(`/datasets/${datasetId}/documents/${batch}/indexing-status`);
+  const response = await client.get(
+    `/datasets/${datasetId}/documents/${batch}/indexing-status`
+  );
   return response.data;
 }
 
-export async function getDocumentSegments(datasetId: string, documentId: string): Promise<any> {
+export async function getDocumentSegments(
+  datasetId: string,
+  documentId: string
+): Promise<any> {
   const client = await getAxiosInstance();
-  const response = await client.get(`/datasets/${datasetId}/documents/${documentId}/segments`);
+  const response = await client.get(
+    `/datasets/${datasetId}/documents/${documentId}/segments`
+  );
   return response.data;
 }
