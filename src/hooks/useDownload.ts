@@ -75,6 +75,7 @@ export function useDownload(
           return [];
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return response.data.map((segment: any, index: number) => ({
           content: segment.content || '',
           position: segment.position ?? index,
@@ -106,6 +107,7 @@ export function useDownload(
             await fs.access(filePath);
             throw new Error(`File already exists: ${path.basename(filePath)}`);
           } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((err as any).code !== 'ENOENT') {
               throw err;
             }
@@ -119,13 +121,13 @@ export function useDownload(
   );
 
   const handleDownloadDocuments = async (selectedDocuments: Document[]) => {
-    console.log(
+    globalThis.console.log(
       'Starting download for documents:',
       selectedDocuments.map(d => d.name)
     );
 
     if (isProcessing) {
-      console.log('Download already in progress, ignoring');
+      globalThis.console.log('Download already in progress, ignoring');
       return;
     }
 
@@ -207,7 +209,7 @@ export function useDownload(
       );
 
       setIsProcessing(false);
-      console.log('All downloads completed');
+      globalThis.console.log('All downloads completed');
     } catch (err) {
       setIsProcessing(false);
       onError?.(err instanceof Error ? err.message : 'Download process failed');

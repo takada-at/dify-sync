@@ -1,9 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { promises as fs } from 'fs';
 import {
-  DifyConfig,
   Dataset,
-  Document,
   CreateDocumentResponse,
   DocumentListResponse,
   DatasetListResponse,
@@ -112,11 +110,11 @@ export async function createDocumentFromText(
 ): Promise<CreateDocumentResponse> {
   const client = await getAxiosInstance();
 
-  console.log(
+  globalThis.console.log(
     'Making API call to:',
     `/datasets/${datasetId}/document/create-by-text`
   );
-  console.log('Request payload:', {
+  globalThis.console.log('Request payload:', {
     name,
     text: text.substring(0, 100) + '...',
     indexing_technique: indexingTechnique,
@@ -176,6 +174,7 @@ export async function updateDocumentWithFile(
   documentId: string,
   filePath: string,
   name?: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   indexingTechnique: string = 'high_quality'
 ): Promise<CreateDocumentResponse> {
   // Note: File upload functionality would need form-data package
@@ -196,6 +195,7 @@ export async function deleteDocument(
 export async function getDocumentIndexingStatus(
   datasetId: string,
   batch: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   const client = await getAxiosInstance();
   const response = await client.get(
@@ -207,6 +207,7 @@ export async function getDocumentIndexingStatus(
 export async function getDocumentSegments(
   datasetId: string,
   documentId: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   const client = await getAxiosInstance();
   const response = await client.get(

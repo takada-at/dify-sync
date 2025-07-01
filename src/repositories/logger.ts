@@ -23,30 +23,35 @@ function parseLogLevel(level: string): LogLevel {
 }
 
 function initLogger(): void {
-  const level = process.env.LOG_LEVEL?.toLowerCase() || 'info';
+  const level = globalThis.process.env.LOG_LEVEL?.toLowerCase() || 'info';
   logLevel = parseLogLevel(level);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function log(level: LogLevel, message: string, ...args: any[]): void {
   if (level <= logLevel) {
     const timestamp = new Date().toISOString();
     const levelName = LogLevel[level];
-    console.log(`[${timestamp}] ${levelName}: ${message}`, ...args);
+    globalThis.console.log(`[${timestamp}] ${levelName}: ${message}`, ...args);
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function error(message: string, ...args: any[]): void {
   log(LogLevel.ERROR, message, ...args);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function warn(message: string, ...args: any[]): void {
   log(LogLevel.WARN, message, ...args);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function info(message: string, ...args: any[]): void {
   log(LogLevel.INFO, message, ...args);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function debug(message: string, ...args: any[]): void {
   log(LogLevel.DEBUG, message, ...args);
 }

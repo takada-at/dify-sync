@@ -7,6 +7,7 @@ interface FileSelectorProps {
   title: string;
   onConfirm: (selectedFiles: LocalFile[]) => void;
   onCancel: () => void;
+  autoConfirm?: boolean;
 }
 
 export function FileSelector({
@@ -14,11 +15,20 @@ export function FileSelector({
   title,
   onConfirm,
   onCancel,
+  autoConfirm = false,
 }: FileSelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(
     new Set(files.map((_, index) => index))
   );
+
+  // Auto-confirm if the flag is set
+  useEffect(() => {
+    if (autoConfirm && files.length > 0) {
+      const selected = files; // Select all files
+      onConfirm(selected);
+    }
+  }, [autoConfirm, files, onConfirm]);
 
   useInput((input, key) => {
     if (key.upArrow) {

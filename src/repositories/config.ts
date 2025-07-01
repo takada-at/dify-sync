@@ -12,9 +12,10 @@ export async function loadConfig(): Promise<DifyConfig> {
     return configCache;
   }
 
-  const apiUrl = process.env.DIFY_API_URL || 'https://api.dify.ai/v1';
-  const apiKey = process.env.DIFY_API_KEY;
-  const datasetId = process.env.DIFY_DATASET_ID;
+  const apiUrl =
+    globalThis.process.env.DIFY_API_URL || 'https://api.dify.ai/v1';
+  const apiKey = globalThis.process.env.DIFY_API_KEY;
+  const datasetId = globalThis.process.env.DIFY_DATASET_ID;
 
   if (!apiKey) {
     throw new Error(
@@ -38,7 +39,7 @@ export async function loadConfig(): Promise<DifyConfig> {
 }
 
 export async function saveConfig(config: DifyConfig): Promise<void> {
-  const envPath = path.join(process.cwd(), '.env');
+  const envPath = path.join(globalThis.process.cwd(), '.env');
   const envContent = `DIFY_API_URL=${config.apiUrl}
 DIFY_API_KEY=${config.apiKey}
 DIFY_DATASET_ID=${config.datasetId}
@@ -50,5 +51,5 @@ LOG_LEVEL=info
 }
 
 export function getLogLevel(): string {
-  return process.env.LOG_LEVEL || 'info';
+  return globalThis.process.env.LOG_LEVEL || 'info';
 }

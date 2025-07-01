@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { Menu, MenuOption } from './Menu.js';
 import { FileSelector } from './FileSelector.js';
@@ -16,7 +16,11 @@ import { useDownload } from '../hooks/useDownload.js';
 import { LocalFile } from '../repositories/fileRepository.js';
 import { Document } from '../core/types/index.js';
 
-export function App() {
+interface AppProps {
+  uploadPath?: string;
+}
+
+export function App({ uploadPath }: AppProps) {
   const {
     state,
     setState,
@@ -40,7 +44,6 @@ export function App() {
     documents,
     downloadProgress,
     downloadDirectories,
-    selectedDownloadDir,
     setSelectedDownloadDir,
     loadDownloadDirectories,
     loadDocuments,
@@ -55,6 +58,49 @@ export function App() {
       handleError(error);
     }
   );
+
+  // Handle automatic upload when uploadPath is provided
+  useEffect(() => {
+    if (uploadPath) {
+      const startUpload = async () => {
+        try {
+          // Load files from the specified path with recursive mode
+          await loadLocalFiles(uploadPath, true);
+          // Automatically select all files and start upload
+          setState('upload-file-select');
+        } catch (err) {
+          handleError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to load files from specified path'
+          );
+        }
+      };
+      startUpload();
+    }
+  }, [uploadPath]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Exit when upload is completed in CLI mode
+  useEffect(() => {
+    if (
+      uploadPath &&
+      state === 'upload-progress' &&
+      uploadProgress.length > 0
+    ) {
+      // Check if all uploads are completed or errored
+      const allCompleted = uploadProgress.every(
+        p => p.status === 'completed' || p.status === 'error'
+      );
+
+      if (allCompleted) {
+        // Give a small delay to show the final status
+        const timer = globalThis.setTimeout(() => {
+          globalThis.process.exit(0);
+        }, 1000);
+        return () => globalThis.clearTimeout(timer);
+      }
+    }
+  }, [uploadPath, state, uploadProgress]);
 
   const mainMenuOptions: MenuOption[] = [
     { label: 'Upload files to Dify', value: 'upload' },
@@ -78,7 +124,7 @@ export function App() {
           setState('settings');
           break;
         case 'exit':
-          process.exit(0);
+          globalThis.process.exit(0);
           break;
       }
     } catch (err) {
@@ -194,6 +240,7 @@ export function App() {
           title="Select files to upload:"
           onConfirm={handleUploadFilesWrapper}
           onCancel={handleBack}
+          autoConfirm={!!uploadPath}
         />
       )}
 

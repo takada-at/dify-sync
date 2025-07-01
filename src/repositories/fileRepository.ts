@@ -141,6 +141,7 @@ export async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getFileStats(filePath: string): Promise<any> {
   return fs.stat(filePath);
 }

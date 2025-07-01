@@ -71,10 +71,14 @@ export function useUpload() {
   );
 
   const handleUploadFiles = async (selectedFiles: LocalFile[]) => {
-    console.log('Starting upload process for', selectedFiles.length, 'files');
+    globalThis.console.log(
+      'Starting upload process for',
+      selectedFiles.length,
+      'files'
+    );
 
     if (selectedFiles.length === 0) {
-      console.log('No files selected, returning to menu');
+      globalThis.console.log('No files selected, returning to menu');
       return;
     }
 
@@ -135,15 +139,15 @@ export function useUpload() {
       });
 
       const stats = calculateUploadStats(results);
-      console.log(
+      globalThis.console.log(
         `Upload completed: ${stats.successful}/${stats.total} successful`
       );
 
       if (stats.failed > 0) {
-        console.error('Upload errors:', stats.errors);
+        globalThis.console.error('Upload errors:', stats.errors);
       }
     } catch (err) {
-      console.error('Upload process error:', err);
+      globalThis.console.error('Upload process error:', err);
       throw err;
     }
   };
