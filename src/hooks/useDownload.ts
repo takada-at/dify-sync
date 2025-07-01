@@ -15,7 +15,6 @@ import {
   type DownloadDependencies,
   type FileConflict,
   type DocumentSegment,
-  type DownloadProgress as CoreDownloadProgress,
 } from '../core/download/index.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -208,12 +207,10 @@ export function useDownload(
               result.status === 'success'
                 ? ('completed' as const)
                 : result.status === 'skipped'
-                  ? ('error' as const)
+                  ? ('skipped' as const)
                   : ('error' as const),
             progress: result.status === 'success' ? 100 : p.progress,
-            error:
-              result.error ||
-              (result.status === 'skipped' ? 'Skipped by user' : undefined),
+            error: result.error,
           };
         })
       );

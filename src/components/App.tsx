@@ -137,9 +137,12 @@ export function App({ uploadPath, downloadPath, forceOverwrite }: AppProps) {
       state === 'download-progress' &&
       downloadProgress.length > 0
     ) {
-      // Check if all downloads are completed or errored
+      // Check if all downloads are completed, errored, or skipped
       const allCompleted = downloadProgress.every(
-        p => p.status === 'completed' || p.status === 'error'
+        p =>
+          p.status === 'completed' ||
+          p.status === 'error' ||
+          p.status === 'skipped'
       );
 
       if (allCompleted) {
