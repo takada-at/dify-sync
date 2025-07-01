@@ -11,7 +11,10 @@
     "build": "tsc",
     "dev": "tsx watch src/index.tsx",
     "start": "npx tsx src/index.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
   },
   "keywords": [
     "dify",
@@ -31,10 +34,14 @@
     "react": "^19.1.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.19.2",
     "@types/react": "^19.1.8",
+    "@vitejs/plugin-react": "^4.6.0",
+    "jsdom": "^26.1.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   }
 }
