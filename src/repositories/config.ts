@@ -6,6 +6,7 @@ import { DifyConfig } from '../core/types/index.js';
 config();
 
 let configCache: DifyConfig | null = null;
+let datasetIdOverride: string | null = null;
 
 export async function loadConfig(): Promise<DifyConfig> {
   if (configCache) {
@@ -15,7 +16,7 @@ export async function loadConfig(): Promise<DifyConfig> {
   const apiUrl =
     globalThis.process.env.DIFY_API_URL || 'https://api.dify.ai/v1';
   const apiKey = globalThis.process.env.DIFY_API_KEY;
-  const datasetId = globalThis.process.env.DIFY_DATASET_ID;
+  const datasetId = datasetIdOverride || globalThis.process.env.DIFY_DATASET_ID;
 
   if (!apiKey) {
     throw new Error(
@@ -25,7 +26,7 @@ export async function loadConfig(): Promise<DifyConfig> {
 
   if (!datasetId) {
     throw new Error(
-      'DIFY_DATASET_ID is required. Please set it in your .env file.'
+      'DIFY_DATASET_ID is required. Please set it in your .env file or provide it via --dataset-id argument.'
     );
   }
 
@@ -48,6 +49,12 @@ LOG_LEVEL=info
 
   await fs.writeFile(envPath, envContent);
   configCache = config;
+}
+
+export function setDatasetIdOverride(datasetId: string): void {
+  datasetIdOverride = datasetId;
+  // Clear cache to force reload with new dataset ID
+  configCache = null;
 }
 
 export function getLogLevel(): string {
