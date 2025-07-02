@@ -9,7 +9,15 @@ import {
 } from '../../repositories/settingsRepository.js';
 import { loadConfig } from '../../repositories/config.js';
 
-type SettingField = 'apiUrl' | 'apiKey' | 'datasetId';
+type SettingField = 'apiUrl' | 'apiKey' | 'datasetId' | 'saveButton';
+type EditableField = Exclude<SettingField, 'saveButton'>;
+
+const NAVIGATION_FIELDS: SettingField[] = [
+  'apiUrl',
+  'apiKey',
+  'datasetId',
+  'saveButton',
+];
 
 export function SettingsScreen() {
   const [currentField, setCurrentField] = useState<SettingField>('apiUrl');
@@ -64,19 +72,20 @@ export function SettingsScreen() {
     }
 
     if (key.upArrow) {
-      const fields: SettingField[] = ['apiUrl', 'apiKey', 'datasetId'];
-      const currentIndex = fields.indexOf(currentField);
+      const currentIndex = NAVIGATION_FIELDS.indexOf(currentField);
       if (currentIndex > 0) {
-        setCurrentField(fields[currentIndex - 1]);
+        setCurrentField(NAVIGATION_FIELDS[currentIndex - 1]);
       }
     } else if (key.downArrow || key.tab) {
-      const fields: SettingField[] = ['apiUrl', 'apiKey', 'datasetId'];
-      const currentIndex = fields.indexOf(currentField);
-      if (currentIndex < fields.length - 1) {
-        setCurrentField(fields[currentIndex + 1]);
+      const currentIndex = NAVIGATION_FIELDS.indexOf(currentField);
+      if (currentIndex < NAVIGATION_FIELDS.length - 1) {
+        setCurrentField(NAVIGATION_FIELDS[currentIndex + 1]);
       }
     } else if (key.ctrl && input === 's') {
       // Ctrl+S to save
+      handleSave();
+    } else if (key.return && currentField === 'saveButton') {
+      // Enter on save button
       handleSave();
     }
   });
@@ -95,7 +104,7 @@ export function SettingsScreen() {
     }
   };
 
-  const handleFieldChange = (field: SettingField, value: string) => {
+  const handleFieldChange = (field: EditableField, value: string) => {
     setSettings(prev => ({ ...prev, [field]: value }));
     setSavedMessage(''); // Clear saved message when editing
   };
@@ -109,7 +118,7 @@ export function SettingsScreen() {
   }
 
   const renderField = (
-    field: SettingField,
+    field: EditableField,
     label: string,
     placeholder: string,
     hideValue = false
@@ -163,12 +172,37 @@ export function SettingsScreen() {
         {renderField('apiUrl', 'API URL', 'https://api.dify.ai/v1')}
         {renderField('apiKey', 'API Key', 'Enter your API key', true)}
         {renderField('datasetId', 'Dataset ID', 'Enter dataset ID')}
+
+        <Box key="saveButton" marginTop={1}>
+          <Box width={20}>
+            <Text
+              color={currentField === 'saveButton' ? 'cyan' : 'white'}
+              bold={currentField === 'saveButton'}
+            >
+              {currentField === 'saveButton' ? '▶ ' : '  '}
+            </Text>
+          </Box>
+          <Box marginLeft={1}>
+            <Text
+              color={currentField === 'saveButton' ? 'green' : 'white'}
+              bold={currentField === 'saveButton'}
+              backgroundColor={
+                currentField === 'saveButton' ? 'green' : undefined
+              }
+            >
+              {currentField === 'saveButton'
+                ? ' Save Settings '
+                : 'Save Settings'}
+            </Text>
+          </Box>
+        </Box>
       </Box>
 
       <Box marginTop={1} marginBottom={1}>
         <Text color="gray">
           <Text color="yellow">↑↓</Text> Navigate •{' '}
           <Text color="yellow">Tab</Text> Next field •{' '}
+          <Text color="yellow">Enter</Text> Select •{' '}
           <Text color="yellow">Ctrl+S</Text> Save •{' '}
           <Text color="yellow">Esc</Text> Back
         </Text>

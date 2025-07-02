@@ -1,0 +1,8 @@
+.claude
+.DS_Store
+docs-local
+test-docs
+.env
+# Logs
+logs
+*.log
