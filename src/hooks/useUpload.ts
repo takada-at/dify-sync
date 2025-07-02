@@ -16,7 +16,7 @@ import {
 } from '../core/upload/index.js';
 import * as fs from 'fs/promises';
 
-export function useUpload() {
+export function useUpload(onComplete?: () => void) {
   const [localFiles, setLocalFiles] = useState<LocalFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [directories, setDirectories] = useState<string[]>([]);
@@ -145,6 +145,13 @@ export function useUpload() {
 
       if (stats.failed > 0) {
         globalThis.console.error('Upload errors:', stats.errors);
+      }
+
+      // Call onComplete callback after a short delay to show completion status
+      if (onComplete) {
+        globalThis.setTimeout(() => {
+          onComplete();
+        }, 1500);
       }
     } catch (err) {
       globalThis.console.error('Upload process error:', err);

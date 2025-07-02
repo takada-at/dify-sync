@@ -3,7 +3,7 @@ import { Box, Text, useInput } from 'ink';
 
 interface OverwriteConfirmProps {
   fileName: string;
-  onConfirm: (overwrite: boolean) => void;
+  onConfirm: (overwrite: boolean, applyToAll?: boolean) => void;
 }
 
 export function OverwriteConfirm({
@@ -11,15 +11,33 @@ export function OverwriteConfirm({
   onConfirm,
 }: OverwriteConfirmProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const options = ['Yes, overwrite', 'No, skip this file'];
+  const options = [
+    'Yes, overwrite',
+    'No, skip this file',
+    'Overwrite all',
+    'Skip all',
+  ];
 
   useInput((input, key) => {
-    if (key.upArrow || key.leftArrow) {
-      setSelectedIndex(0);
-    } else if (key.downArrow || key.rightArrow) {
-      setSelectedIndex(1);
+    if (key.upArrow) {
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : options.length - 1));
+    } else if (key.downArrow) {
+      setSelectedIndex(prev => (prev < options.length - 1 ? prev + 1 : 0));
     } else if (key.return) {
-      onConfirm(selectedIndex === 0);
+      switch (selectedIndex) {
+        case 0: // Yes, overwrite
+          onConfirm(true, false);
+          break;
+        case 1: // No, skip this file
+          onConfirm(false, false);
+          break;
+        case 2: // Overwrite all
+          onConfirm(true, true);
+          break;
+        case 3: // Skip all
+          onConfirm(false, true);
+          break;
+      }
     }
   });
 
@@ -56,9 +74,7 @@ export function OverwriteConfirm({
       ))}
 
       <Box marginTop={1}>
-        <Text color="gray">
-          Use ↑↓ or ←→ arrows to navigate, Enter to confirm
-        </Text>
+        <Text color="gray">Use ↑↓ arrows to navigate, Enter to confirm</Text>
       </Box>
     </Box>
   );

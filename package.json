@@ -24,7 +24,7 @@
     "sync",
     "knowledge-base"
   ],
-  "author": "",
+  "author": "takada-at",
   "license": "MIT",
   "dependencies": {
     "@inkjs/ui": "^2.0.0",
