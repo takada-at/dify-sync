@@ -6,6 +6,7 @@ export interface MenuOption {
   value: string;
   icon?: string;
   description?: string;
+  disabled?: boolean;
 }
 
 interface MenuProps {
@@ -15,15 +16,34 @@ interface MenuProps {
 }
 
 export function Menu({ title, options, onSelect }: MenuProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  // Find first non-disabled option
+  const firstEnabledIndex = options.findIndex(opt => !opt.disabled);
+  const [selectedIndex, setSelectedIndex] = useState(
+    firstEnabledIndex >= 0 ? firstEnabledIndex : 0
+  );
 
   useInput((_, key) => {
     if (key.upArrow) {
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : options.length - 1));
+      setSelectedIndex(prev => {
+        let newIndex = prev;
+        do {
+          newIndex = newIndex > 0 ? newIndex - 1 : options.length - 1;
+        } while (options[newIndex].disabled && newIndex !== prev);
+        return newIndex;
+      });
     } else if (key.downArrow) {
-      setSelectedIndex(prev => (prev < options.length - 1 ? prev + 1 : 0));
+      setSelectedIndex(prev => {
+        let newIndex = prev;
+        do {
+          newIndex = newIndex < options.length - 1 ? newIndex + 1 : 0;
+        } while (options[newIndex].disabled && newIndex !== prev);
+        return newIndex;
+      });
     } else if (key.return) {
-      onSelect(options[selectedIndex].value);
+      const selectedOption = options[selectedIndex];
+      if (!selectedOption.disabled) {
+        onSelect(selectedOption.value);
+      }
     }
   });
 
@@ -40,13 +60,19 @@ export function Menu({ title, options, onSelect }: MenuProps) {
           const isSelected = index === selectedIndex;
           return (
             <Box key={option.value} paddingLeft={1}>
-              <Text color={isSelected ? 'magenta' : 'white'} bold={isSelected}>
+              <Text
+                color={
+                  option.disabled ? 'gray' : isSelected ? 'magenta' : 'white'
+                }
+                bold={isSelected && !option.disabled}
+                dimColor={option.disabled}
+              >
                 {isSelected ? '❯' : ' '} {option.icon} {option.label}
               </Text>
               {isSelected && option.description && (
-                <Text color="gray" dimColor>
+                <Text color={option.disabled ? 'darkGray' : 'gray'} dimColor>
                   {' '}
-                  ({option.description})
+                  ({option.disabled ? 'Settings required' : option.description})
                 </Text>
               )}
             </Box>

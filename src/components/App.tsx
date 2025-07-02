@@ -15,7 +15,7 @@ import { useUpload } from '../hooks/useUpload.js';
 import { useDownload } from '../hooks/useDownload.js';
 import { LocalFile } from '../repositories/fileRepository.js';
 import { Document } from '../core/types/index.js';
-import { setDatasetIdOverride } from '../repositories/config.js';
+import { setDatasetIdOverride, loadConfig } from '../repositories/config.js';
 
 interface AppProps {
   uploadPath?: string;
@@ -40,12 +40,27 @@ export function App({
     handleError,
   } = useAppState();
 
+  const [isConfigValid, setIsConfigValid] = React.useState(false);
+
   // Set dataset ID override if provided via CLI argument
   React.useEffect(() => {
     if (datasetId) {
       setDatasetIdOverride(datasetId);
     }
   }, [datasetId]);
+
+  // Check if configuration is valid
+  React.useEffect(() => {
+    const checkConfig = async () => {
+      try {
+        await loadConfig();
+        setIsConfigValid(true);
+      } catch {
+        setIsConfigValid(false);
+      }
+    };
+    checkConfig();
+  }, [state]); // Re-check when state changes (e.g., after settings update)
 
   const {
     localFiles,
@@ -175,12 +190,14 @@ export function App({
       value: 'upload',
       icon: '📤',
       description: 'Sync local files to your Dify knowledge base',
+      disabled: !isConfigValid,
     },
     {
       label: 'Download files from Dify',
       value: 'download',
       icon: '📥',
       description: 'Export documents from Dify to local storage',
+      disabled: !isConfigValid,
     },
     {
       label: 'Settings',
@@ -307,12 +324,48 @@ export function App({
       </Box>
 
       {state === 'menu' && (
-        <Box marginTop={1}>
-          <Menu
-            title="MAIN MENU"
-            options={mainMenuOptions}
-            onSelect={handleMainMenuSelect}
-          />
+        <Box flexDirection="column">
+          {!isConfigValid && (
+            <Box
+              marginBottom={1}
+              paddingX={1}
+              paddingY={1}
+              borderStyle="round"
+              borderColor="yellow"
+            >
+              <Box flexDirection="column">
+                <Text color="yellow" bold>
+                  ⚠️ Configuration Required
+                </Text>
+                <Box marginTop={1}>
+                  <Text color="white">
+                    Please configure your API credentials first:
+                  </Text>
+                </Box>
+                <Box marginTop={1} flexDirection="column">
+                  <Text color="gray">
+                    • API Key is required to connect to Dify
+                  </Text>
+                  <Text color="gray">
+                    • Dataset ID is required to sync files
+                  </Text>
+                </Box>
+                <Box marginTop={1}>
+                  <Text dimColor>
+                    Select <Text color="cyan">Settings</Text> from the menu
+                    below
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          )}
+          <Box marginTop={1}>
+            <Menu
+              title="MAIN MENU"
+              options={mainMenuOptions}
+              onSelect={handleMainMenuSelect}
+            />
+          </Box>
         </Box>
       )}
 
