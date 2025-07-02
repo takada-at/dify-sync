@@ -20,18 +20,15 @@ A CLI tool for bidirectional file synchronization between local files and Dify k
 ## Installation
 
 ```bash
-npm install
-npm run build
+npm install -g @takada-at/dify-sync
 ```
 
 ## Configuration
 
-1. Copy the environment template:
-```bash
-cp .env.example .env
-```
+1. Command-line configuration:
+Run the `defy-sync` command and configure DIFY settings including the API KEY through the Settings menu.
 
-2. Configure your environment variables:
+2. Environment variable configuration:
 ```
 DIFY_API_URL=https://api.dify.ai/v1/
 DIFY_API_KEY=your_api_key_here

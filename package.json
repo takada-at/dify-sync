@@ -1,5 +1,5 @@
 {
-  "name": "dify-sync",
+  "name": "@takada-at/dify-sync",
   "version": "1.0.0",
   "description": "CLI tool for syncing files with Dify knowledge base",
   "main": "dist/index.js",

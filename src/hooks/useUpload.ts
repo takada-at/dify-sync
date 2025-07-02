@@ -16,6 +16,9 @@ import {
 } from '../core/upload/index.js';
 import * as fs from 'fs/promises';
 
+// Delay in milliseconds before returning to menu after completion
+const COMPLETION_DELAY = 1500;
+
 export function useUpload(onComplete?: () => void) {
   const [localFiles, setLocalFiles] = useState<LocalFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
@@ -151,7 +154,7 @@ export function useUpload(onComplete?: () => void) {
       if (onComplete) {
         globalThis.setTimeout(() => {
           onComplete();
-        }, 1500);
+        }, COMPLETION_DELAY);
       }
     } catch (err) {
       globalThis.console.error('Upload process error:', err);

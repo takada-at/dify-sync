@@ -19,6 +19,9 @@ import {
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+// Delay in milliseconds before returning to menu after completion
+const COMPLETION_DELAY = 1500;
+
 export function useDownload(
   onConflict?: (fileName: string) => void,
   onError?: (error: string) => void,
@@ -232,7 +235,7 @@ export function useDownload(
       if (onComplete) {
         globalThis.setTimeout(() => {
           onComplete();
-        }, 1500);
+        }, COMPLETION_DELAY);
       }
     } catch (err) {
       setIsProcessing(false);
