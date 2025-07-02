@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { DocumentSegment } from './types.js';
 
 export function combineSegments(segments: DocumentSegment[]): string {
@@ -8,14 +9,16 @@ export function combineSegments(segments: DocumentSegment[]): string {
 }
 
 export function sanitizeFileName(name: string): string {
-  // Split by forward slash to preserve directory structure
-  const parts = name.split('/');
+  // Normalize and split path using Node's path utilities for cross-platform compatibility
+  const normalized = path.posix.normalize(name.trim());
+  const parts =
+    normalized === '.' ? [] : normalized.split(path.posix.sep).filter(Boolean);
 
   // Sanitize each part separately (excluding slashes)
   const sanitizedParts = parts.map(part => part.replace(/[\\?%*:|"<>]/g, '-'));
 
-  // Rejoin with forward slash
-  return sanitizedParts.join('/');
+  // Rejoin with forward slash using path.posix.join
+  return sanitizedParts.length > 0 ? path.posix.join(...sanitizedParts) : '';
 }
 
 export function generateFilePath(

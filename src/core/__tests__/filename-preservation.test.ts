@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createBatchUploadProcessor } from '../upload/processor.js';
 import { createDownloadProcessor } from '../download/processor.js';
-import { generateFilePath } from '../download/document.js';
+import { generateFilePath, sanitizeFileName } from '../download/document.js';
 import type { UploadDependencies } from '../upload/types.js';
 import type { DownloadDependencies } from '../download/types.js';
 
@@ -205,6 +205,67 @@ describe('Filename Preservation Tests', () => {
           expect(result.endsWith(originalExt)).toBe(true);
         } else {
           expect(result).toBe(`/output/${filename}`);
+        }
+      });
+    });
+
+    it('should handle edge cases with leading/trailing slashes and empty segments', () => {
+      const testCases = [
+        {
+          input: '/document.md',
+          expected: 'document.md',
+          description: 'leading slash',
+        },
+        {
+          input: 'document.md/',
+          expected: 'document.md',
+          description: 'trailing slash',
+        },
+        {
+          input: '/document.md/',
+          expected: 'document.md',
+          description: 'leading and trailing slash',
+        },
+        {
+          input: 'docs//file.md',
+          expected: 'docs/file.md',
+          description: 'double slash',
+        },
+        {
+          input: '/docs//api///file.md/',
+          expected: 'docs/api/file.md',
+          description: 'multiple slashes',
+        },
+        {
+          input: '   /docs/file.md   ',
+          expected: 'docs/file.md',
+          description: 'whitespace with slash',
+        },
+        {
+          input: '/',
+          expected: '',
+          description: 'root slash only',
+        },
+        {
+          input: '///',
+          expected: '',
+          description: 'multiple slashes only',
+        },
+        {
+          input: '   ',
+          expected: '',
+          description: 'whitespace only',
+        },
+      ];
+
+      testCases.forEach(({ input, expected, description }) => {
+        const result = sanitizeFileName(input);
+        expect(result).toBe(expected);
+
+        // Ensure no empty segments remain (unless result is empty)
+        if (result.length > 0) {
+          const segments = result.split('/');
+          expect(segments.every(segment => segment.length > 0)).toBe(true);
         }
       });
     });
