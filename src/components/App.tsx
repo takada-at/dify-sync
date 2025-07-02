@@ -185,7 +185,7 @@ export function App({
     {
       label: 'Settings',
       value: 'settings',
-      icon: '⚙️',
+      icon: '⚙️ ',
       description: 'Configure API credentials and preferences',
     },
     {
@@ -298,38 +298,12 @@ export function App({
 
   return (
     <Box flexDirection="column" padding={1}>
-      <Box marginBottom={1} flexDirection="column" alignItems="center">
-        <Box
-          borderStyle="double"
-          borderColor="magenta"
-          paddingX={3}
-          paddingY={1}
-        >
-          <Text bold>
-            <Text color="magenta">╔═══════════════════════════╗</Text>
-          </Text>
-        </Box>
-        <Box marginTop={-1}>
-          <Text bold>
-            <Text color="magenta">║ </Text>
-            <Text color="cyan">🔄 </Text>
-            <Text color="yellow" bold>
-              DIFY SYNC
-            </Text>
-            <Text color="cyan"> v1.0.0</Text>
-            <Text color="magenta"> ║</Text>
-          </Text>
-        </Box>
-        <Box>
-          <Text bold>
-            <Text color="magenta">╚═══════════════════════════╝</Text>
-          </Text>
-        </Box>
-        <Box marginTop={1}>
-          <Text color="gray" italic>
-            Seamless Knowledge Base Synchronization
-          </Text>
-        </Box>
+      <Box marginBottom={1}>
+        <Text bold>
+          <Text color="cyan">🔄 </Text>
+          <Text color="yellow">DIFY SYNC</Text>
+          <Text color="gray"> • Knowledge Base Synchronization</Text>
+        </Text>
       </Box>
 
       {state === 'menu' && (

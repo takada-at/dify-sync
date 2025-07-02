@@ -29,61 +29,35 @@ export function Menu({ title, options, onSelect }: MenuProps) {
 
   return (
     <Box flexDirection="column">
-      <Box
-        borderStyle="round"
-        borderColor="cyan"
-        padding={1}
-        flexDirection="column"
-        width={60}
-      >
-        <Box justifyContent="center" marginBottom={1}>
-          <Text bold color="cyan">
-            {title}
-          </Text>
-        </Box>
-
-        <Box flexDirection="column" gap={1}>
-          {options.map((option, index) => {
-            const isSelected = index === selectedIndex;
-            return (
-              <Box
-                key={option.value}
-                paddingX={2}
-                paddingY={1}
-                borderStyle={isSelected ? 'bold' : 'single'}
-                borderColor={isSelected ? 'magenta' : 'gray'}
-                flexDirection="column"
-              >
-                <Box gap={1}>
-                  <Text
-                    color={isSelected ? 'magenta' : 'white'}
-                    bold={isSelected}
-                  >
-                    {isSelected ? '▶' : ' '} {option.icon || '•'}{' '}
-                    {option.label}
-                  </Text>
-                </Box>
-                {option.description && (
-                  <Box marginLeft={4} marginTop={0}>
-                    <Text color={isSelected ? 'gray' : 'darkGray'} italic>
-                      {option.description}
-                    </Text>
-                  </Box>
-                )}
-              </Box>
-            );
-          })}
-        </Box>
+      <Box marginBottom={1}>
+        <Text bold color="cyan">
+          {title}
+        </Text>
       </Box>
 
-      <Box marginTop={1} justifyContent="center">
-        <Box borderStyle="round" borderColor="darkGray" paddingX={2}>
-          <Text color="gray">
-            <Text color="yellow">↑↓</Text> Navigate{' '}
-            <Text color="yellow">↵</Text> Select <Text color="yellow">^C</Text>{' '}
-            Exit
-          </Text>
-        </Box>
+      <Box flexDirection="column">
+        {options.map((option, index) => {
+          const isSelected = index === selectedIndex;
+          return (
+            <Box key={option.value} paddingLeft={1}>
+              <Text color={isSelected ? 'magenta' : 'white'} bold={isSelected}>
+                {isSelected ? '❯' : ' '} {option.icon} {option.label}
+              </Text>
+              {isSelected && option.description && (
+                <Text color="gray" dimColor>
+                  {' '}
+                  ({option.description})
+                </Text>
+              )}
+            </Box>
+          );
+        })}
+      </Box>
+
+      <Box marginTop={1}>
+        <Text dimColor color="gray">
+          ↑↓ Navigate • ↵ Select • ^C Exit
+        </Text>
       </Box>
     </Box>
   );
