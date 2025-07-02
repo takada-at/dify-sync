@@ -33,7 +33,8 @@ export async function saveSettingsToFile(settings: Settings): Promise<void> {
       'utf-8'
     );
   } catch (error) {
-    throw new Error(`Failed to save settings: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to save settings: ${errorMessage}`);
   }
 }
 
