@@ -19,10 +19,14 @@ import {
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+// Delay in milliseconds before returning to menu after completion
+const COMPLETION_DELAY = 1500;
+
 export function useDownload(
   onConflict?: (fileName: string) => void,
   onError?: (error: string) => void,
-  forceOverwrite?: boolean
+  forceOverwrite?: boolean,
+  onComplete?: () => void
 ) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [downloadProgress, setDownloadProgress] = useState<
@@ -35,6 +39,9 @@ export function useDownload(
   const [downloadDirectories, setDownloadDirectories] = useState<string[]>([]);
   const [selectedDownloadDir, setSelectedDownloadDir] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  // Use ref for overwriteAllDecision to ensure immediate updates
+  const overwriteAllDecisionRef = useRef<'overwrite' | 'skip' | null>(null);
 
   // Use ref to store conflict resolver to avoid stale closure issues
   const conflictResolverRef = useRef<
@@ -138,6 +145,7 @@ export function useDownload(
     setCurrentDownloadDocuments(selectedDocuments);
     setCurrentDownloadIndex(0);
     setIsProcessing(true);
+    overwriteAllDecisionRef.current = null; // Reset the overwrite all decision
 
     const progress: UIDownloadProgress[] = selectedDocuments.map(doc => ({
       fileName: doc.name,
@@ -159,6 +167,11 @@ export function useDownload(
             // If forceOverwrite is true, automatically overwrite
             if (forceOverwrite) {
               return 'overwrite';
+            }
+
+            // If we have an overwrite all decision, use it
+            if (overwriteAllDecisionRef.current !== null) {
+              return overwriteAllDecisionRef.current;
             }
 
             return new Promise<'overwrite' | 'skip'>(resolve => {
@@ -217,18 +230,33 @@ export function useDownload(
 
       setIsProcessing(false);
       globalThis.console.log('All downloads completed');
+
+      // Call onComplete callback after a short delay to show completion status
+      if (onComplete) {
+        globalThis.setTimeout(() => {
+          onComplete();
+        }, COMPLETION_DELAY);
+      }
     } catch (err) {
       setIsProcessing(false);
       onError?.(err instanceof Error ? err.message : 'Download process failed');
     }
   };
 
-  const handleOverwriteDecision = useCallback((overwrite: boolean) => {
-    // Call the stored conflict resolver
-    if (conflictResolverRef.current) {
-      conflictResolverRef.current(overwrite ? 'overwrite' : 'skip');
-    }
-  }, []);
+  const handleOverwriteDecision = useCallback(
+    (overwrite: boolean, applyToAll?: boolean) => {
+      // If apply to all, set the decision for all future conflicts
+      if (applyToAll) {
+        overwriteAllDecisionRef.current = overwrite ? 'overwrite' : 'skip';
+      }
+
+      // Call the stored conflict resolver
+      if (conflictResolverRef.current) {
+        conflictResolverRef.current(overwrite ? 'overwrite' : 'skip');
+      }
+    },
+    []
+  );
 
   return {
     documents,

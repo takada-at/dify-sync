@@ -69,7 +69,10 @@ export function App({
     loadDirectories,
     loadLocalFiles,
     handleUploadFiles,
-  } = useUpload();
+  } = useUpload(() => {
+    // Return to main menu after upload completion
+    setState('menu');
+  });
 
   const {
     documents,
@@ -91,7 +94,11 @@ export function App({
     error => {
       handleError(error);
     },
-    forceOverwrite
+    forceOverwrite,
+    () => {
+      // Return to main menu after download completion
+      setState('menu');
+    }
   );
 
   // Handle automatic upload when uploadPath is provided
@@ -289,11 +296,14 @@ export function App({
     }
   };
 
-  const handleOverwriteDecisionWrapper = async (overwrite: boolean) => {
+  const handleOverwriteDecisionWrapper = async (
+    overwrite: boolean,
+    applyToAll?: boolean
+  ) => {
     setState('download-progress');
 
     try {
-      await handleOverwriteDecision(overwrite);
+      await handleOverwriteDecision(overwrite, applyToAll);
     } catch (err) {
       handleError(
         err instanceof Error ? err.message : 'Download process failed'

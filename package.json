@@ -1,5 +1,5 @@
 {
-  "name": "dify-sync",
+  "name": "@takada-at/dify-sync",
   "version": "1.0.0",
   "description": "CLI tool for syncing files with Dify knowledge base",
   "main": "dist/index.js",
@@ -24,7 +24,7 @@
     "sync",
     "knowledge-base"
   ],
-  "author": "",
+  "author": "takada-at",
   "license": "MIT",
   "dependencies": {
     "@inkjs/ui": "^2.0.0",
