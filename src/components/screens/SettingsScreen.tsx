@@ -10,6 +10,14 @@ import {
 import { loadConfig } from '../../repositories/config.js';
 
 type SettingField = 'apiUrl' | 'apiKey' | 'datasetId' | 'saveButton';
+type EditableField = Exclude<SettingField, 'saveButton'>;
+
+const NAVIGATION_FIELDS: SettingField[] = [
+  'apiUrl',
+  'apiKey',
+  'datasetId',
+  'saveButton',
+];
 
 export function SettingsScreen() {
   const [currentField, setCurrentField] = useState<SettingField>('apiUrl');
@@ -64,26 +72,14 @@ export function SettingsScreen() {
     }
 
     if (key.upArrow) {
-      const fields: SettingField[] = [
-        'apiUrl',
-        'apiKey',
-        'datasetId',
-        'saveButton',
-      ];
-      const currentIndex = fields.indexOf(currentField);
+      const currentIndex = NAVIGATION_FIELDS.indexOf(currentField);
       if (currentIndex > 0) {
-        setCurrentField(fields[currentIndex - 1]);
+        setCurrentField(NAVIGATION_FIELDS[currentIndex - 1]);
       }
     } else if (key.downArrow || key.tab) {
-      const fields: SettingField[] = [
-        'apiUrl',
-        'apiKey',
-        'datasetId',
-        'saveButton',
-      ];
-      const currentIndex = fields.indexOf(currentField);
-      if (currentIndex < fields.length - 1) {
-        setCurrentField(fields[currentIndex + 1]);
+      const currentIndex = NAVIGATION_FIELDS.indexOf(currentField);
+      if (currentIndex < NAVIGATION_FIELDS.length - 1) {
+        setCurrentField(NAVIGATION_FIELDS[currentIndex + 1]);
       }
     } else if (key.ctrl && input === 's') {
       // Ctrl+S to save
@@ -108,10 +104,7 @@ export function SettingsScreen() {
     }
   };
 
-  const handleFieldChange = (
-    field: Exclude<SettingField, 'saveButton'>,
-    value: string
-  ) => {
+  const handleFieldChange = (field: EditableField, value: string) => {
     setSettings(prev => ({ ...prev, [field]: value }));
     setSavedMessage(''); // Clear saved message when editing
   };
@@ -125,7 +118,7 @@ export function SettingsScreen() {
   }
 
   const renderField = (
-    field: Exclude<SettingField, 'saveButton'>,
+    field: EditableField,
     label: string,
     placeholder: string,
     hideValue = false
