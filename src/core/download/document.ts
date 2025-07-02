@@ -8,7 +8,14 @@ export function combineSegments(segments: DocumentSegment[]): string {
 }
 
 export function sanitizeFileName(name: string): string {
-  return name.replace(/[/\\?%*:|"<>]/g, '-');
+  // Split by forward slash to preserve directory structure
+  const parts = name.split('/');
+
+  // Sanitize each part separately (excluding slashes)
+  const sanitizedParts = parts.map(part => part.replace(/[\\?%*:|"<>]/g, '-'));
+
+  // Rejoin with forward slash
+  return sanitizedParts.join('/');
 }
 
 export function generateFilePath(

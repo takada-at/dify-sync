@@ -27,22 +27,46 @@ describe('combineSegments', () => {
 });
 
 describe('sanitizeFileName', () => {
-  it('should replace invalid characters with hyphens', () => {
-    expect(sanitizeFileName('file/name')).toBe('file-name');
-    expect(sanitizeFileName('file\\name')).toBe('file-name');
-    expect(sanitizeFileName('file?name')).toBe('file-name');
-    expect(sanitizeFileName('file%name')).toBe('file-name');
-    expect(sanitizeFileName('file*name')).toBe('file-name');
-    expect(sanitizeFileName('file:name')).toBe('file-name');
-    expect(sanitizeFileName('file|name')).toBe('file-name');
-    expect(sanitizeFileName('file"name')).toBe('file-name');
-    expect(sanitizeFileName('file<name>')).toBe('file-name-');
+  it('should replace invalid characters with hyphens but preserve directory structure', () => {
+    expect(sanitizeFileName('sub/subdir_file')).toBe('sub/subdir_file');
+    expect(sanitizeFileName('path/to/file\\name')).toBe('path/to/file-name');
+    expect(sanitizeFileName('dir/file?name')).toBe('dir/file-name');
+    expect(sanitizeFileName('dir/file%name')).toBe('dir/file-name');
+    expect(sanitizeFileName('dir/file*name')).toBe('dir/file-name');
+    expect(sanitizeFileName('dir/file:name')).toBe('dir/file-name');
+    expect(sanitizeFileName('dir/file|name')).toBe('dir/file-name');
+    expect(sanitizeFileName('dir/file"name')).toBe('dir/file-name');
+    expect(sanitizeFileName('dir/file<name>')).toBe('dir/file-name-');
   });
 
   it('should keep valid characters unchanged', () => {
     expect(sanitizeFileName('valid_file-name.txt')).toBe('valid_file-name.txt');
     expect(sanitizeFileName('file name with spaces')).toBe(
       'file name with spaces'
+    );
+    expect(sanitizeFileName('path/to/valid_file-name.txt')).toBe(
+      'path/to/valid_file-name.txt'
+    );
+  });
+
+  it('should handle complex directory structures', () => {
+    expect(sanitizeFileName('docs/api/v1/endpoints.md')).toBe(
+      'docs/api/v1/endpoints.md'
+    );
+    expect(sanitizeFileName('src/components/UI/Button.tsx')).toBe(
+      'src/components/UI/Button.tsx'
+    );
+    expect(sanitizeFileName('data/2024/01/report.csv')).toBe(
+      'data/2024/01/report.csv'
+    );
+  });
+
+  it('should sanitize each path component separately', () => {
+    expect(sanitizeFileName('dir:name/file:name.txt')).toBe(
+      'dir-name/file-name.txt'
+    );
+    expect(sanitizeFileName('bad?dir/bad?file.txt')).toBe(
+      'bad-dir/bad-file.txt'
     );
   });
 });
@@ -76,12 +100,12 @@ describe('generateFilePath', () => {
     );
   });
 
-  it('should sanitize file names while preserving extensions', () => {
+  it('should preserve directory structure while sanitizing file names', () => {
     expect(generateFilePath('doc/with/slashes.md', '/output')).toBe(
-      '/output/doc-with-slashes.md'
+      '/output/doc/with/slashes.md'
     );
-    expect(generateFilePath('file*with?special.json', '/output')).toBe(
-      '/output/file-with-special.json'
+    expect(generateFilePath('dir/file*with?special.json', '/output')).toBe(
+      '/output/dir/file-with-special.json'
     );
   });
 

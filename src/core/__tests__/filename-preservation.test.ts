@@ -71,6 +71,16 @@ describe('Filename Preservation Tests', () => {
         { name: 'data.json', path: '/test/data.json', size: 200 },
         { name: 'README', path: '/test/README', size: 50 },
         { name: 'config.yaml', path: '/test/config.yaml', size: 150 },
+        {
+          name: 'sub/subdir_file.txt',
+          path: '/test/sub/subdir_file.txt',
+          size: 100,
+        },
+        {
+          name: 'docs/api/endpoints.md',
+          path: '/test/docs/api/endpoints.md',
+          size: 200,
+        },
       ];
 
       const uploadProcessor = createBatchUploadProcessor(mockUploadDeps);
@@ -135,6 +145,37 @@ describe('Filename Preservation Tests', () => {
           expect(downloadPath).not.toMatch(/\.txt$/);
         }
       }
+    });
+
+    it('should preserve directory structure in downloads', () => {
+      // This test specifically guards against the bug where '/' was replaced with '-'
+      const testCases = [
+        {
+          input: 'sub/subdir_file.txt',
+          expected: '/output/sub/subdir_file.txt',
+        },
+        {
+          input: 'docs/api/v1/endpoints.md',
+          expected: '/output/docs/api/v1/endpoints.md',
+        },
+        {
+          input: 'src/components/UI/Button.tsx',
+          expected: '/output/src/components/UI/Button.tsx',
+        },
+        {
+          input: 'data/2024/01/report.csv',
+          expected: '/output/data/2024/01/report.csv',
+        },
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        const result = generateFilePath(input, '/output');
+        expect(result).toBe(expected);
+
+        // Critical test: ensure directory separators are preserved
+        expect(result).toContain('/');
+        expect(result.split('/').length).toBeGreaterThan(2);
+      });
     });
 
     it('should prevent regression of .txt auto-addition bug', () => {
