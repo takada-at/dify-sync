@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createBatchUploadProcessor } from '../upload/processor.js';
 import { createDownloadProcessor } from '../download/processor.js';
-import { generateFilePath } from '../download/document.js';
+import { generateFilePath, sanitizeFileName } from '../download/document.js';
 import type { UploadDependencies } from '../upload/types.js';
 import type { DownloadDependencies } from '../download/types.js';
 
@@ -71,6 +71,16 @@ describe('Filename Preservation Tests', () => {
         { name: 'data.json', path: '/test/data.json', size: 200 },
         { name: 'README', path: '/test/README', size: 50 },
         { name: 'config.yaml', path: '/test/config.yaml', size: 150 },
+        {
+          name: 'sub/subdir_file.txt',
+          path: '/test/sub/subdir_file.txt',
+          size: 100,
+        },
+        {
+          name: 'docs/api/endpoints.md',
+          path: '/test/docs/api/endpoints.md',
+          size: 200,
+        },
       ];
 
       const uploadProcessor = createBatchUploadProcessor(mockUploadDeps);
@@ -137,6 +147,37 @@ describe('Filename Preservation Tests', () => {
       }
     });
 
+    it('should preserve directory structure in downloads', () => {
+      // This test specifically guards against the bug where '/' was replaced with '-'
+      const testCases = [
+        {
+          input: 'sub/subdir_file.txt',
+          expected: '/output/sub/subdir_file.txt',
+        },
+        {
+          input: 'docs/api/v1/endpoints.md',
+          expected: '/output/docs/api/v1/endpoints.md',
+        },
+        {
+          input: 'src/components/UI/Button.tsx',
+          expected: '/output/src/components/UI/Button.tsx',
+        },
+        {
+          input: 'data/2024/01/report.csv',
+          expected: '/output/data/2024/01/report.csv',
+        },
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        const result = generateFilePath(input, '/output');
+        expect(result).toBe(expected);
+
+        // Critical test: ensure directory separators are preserved
+        expect(result).toContain('/');
+        expect(result.split('/').length).toBeGreaterThan(2);
+      });
+    });
+
     it('should prevent regression of .txt auto-addition bug', () => {
       // This test specifically guards against the bug where .txt was automatically added
       const nonTxtFiles = [
@@ -164,6 +205,67 @@ describe('Filename Preservation Tests', () => {
           expect(result.endsWith(originalExt)).toBe(true);
         } else {
           expect(result).toBe(`/output/${filename}`);
+        }
+      });
+    });
+
+    it('should handle edge cases with leading/trailing slashes and empty segments', () => {
+      const testCases = [
+        {
+          input: '/document.md',
+          expected: 'document.md',
+          description: 'leading slash',
+        },
+        {
+          input: 'document.md/',
+          expected: 'document.md',
+          description: 'trailing slash',
+        },
+        {
+          input: '/document.md/',
+          expected: 'document.md',
+          description: 'leading and trailing slash',
+        },
+        {
+          input: 'docs//file.md',
+          expected: 'docs/file.md',
+          description: 'double slash',
+        },
+        {
+          input: '/docs//api///file.md/',
+          expected: 'docs/api/file.md',
+          description: 'multiple slashes',
+        },
+        {
+          input: '   /docs/file.md   ',
+          expected: 'docs/file.md',
+          description: 'whitespace with slash',
+        },
+        {
+          input: '/',
+          expected: '',
+          description: 'root slash only',
+        },
+        {
+          input: '///',
+          expected: '',
+          description: 'multiple slashes only',
+        },
+        {
+          input: '   ',
+          expected: '',
+          description: 'whitespace only',
+        },
+      ];
+
+      testCases.forEach(({ input, expected, description }) => {
+        const result = sanitizeFileName(input);
+        expect(result).toBe(expected);
+
+        // Ensure no empty segments remain (unless result is empty)
+        if (result.length > 0) {
+          const segments = result.split('/');
+          expect(segments.every(segment => segment.length > 0)).toBe(true);
         }
       });
     });

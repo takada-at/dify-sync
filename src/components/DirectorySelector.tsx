@@ -15,7 +15,7 @@ export function DirectorySelector({
   onCancel,
 }: DirectorySelectorProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [recursive, setRecursive] = useState(false);
+  const [recursive, setRecursive] = useState(true);
 
   // Add current directory and available subdirectories to options
   const options = [
