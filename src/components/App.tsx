@@ -170,10 +170,30 @@ export function App({
   }, [downloadPath, state, downloadProgress]);
 
   const mainMenuOptions: MenuOption[] = [
-    { label: 'Upload files to Dify', value: 'upload' },
-    { label: 'Download files from Dify', value: 'download' },
-    { label: 'Settings', value: 'settings' },
-    { label: 'Exit', value: 'exit' },
+    {
+      label: 'Upload files to Dify',
+      value: 'upload',
+      icon: '📤',
+      description: 'Sync local files to your Dify knowledge base',
+    },
+    {
+      label: 'Download files from Dify',
+      value: 'download',
+      icon: '📥',
+      description: 'Export documents from Dify to local storage',
+    },
+    {
+      label: 'Settings',
+      value: 'settings',
+      icon: '⚙️ ',
+      description: 'Configure API credentials and preferences',
+    },
+    {
+      label: 'Exit',
+      value: 'exit',
+      icon: '🚪',
+      description: 'Close the application',
+    },
   ];
 
   const handleMainMenuSelect = async (value: string) => {
@@ -279,17 +299,21 @@ export function App({
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
-        <Text bold color="magenta">
-          🔄 Dify Sync
+        <Text bold>
+          <Text color="cyan">🔄 </Text>
+          <Text color="yellow">DIFY SYNC</Text>
+          <Text color="gray"> • Knowledge Base Synchronization</Text>
         </Text>
       </Box>
 
       {state === 'menu' && (
-        <Menu
-          title="Select an option:"
-          options={mainMenuOptions}
-          onSelect={handleMainMenuSelect}
-        />
+        <Box marginTop={1}>
+          <Menu
+            title="MAIN MENU"
+            options={mainMenuOptions}
+            onSelect={handleMainMenuSelect}
+          />
+        </Box>
       )}
 
       {state === 'upload-directory-select' && (
