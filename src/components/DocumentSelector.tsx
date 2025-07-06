@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { Document } from '../core/types/index.js';
 import { usePagination } from '../hooks/usePagination.js';
+import { DEFAULT_ITEMS_PER_PAGE } from '../constants/pagination.js';
 
 interface DocumentSelectorProps {
   documents: Document[];
@@ -9,9 +10,8 @@ interface DocumentSelectorProps {
   onConfirm: (selectedDocuments: Document[]) => void;
   onCancel: () => void;
   autoConfirm?: boolean;
+  itemsPerPage?: number;
 }
-
-const ITEMS_PER_PAGE = 10;
 
 export function DocumentSelector({
   documents,
@@ -19,6 +19,7 @@ export function DocumentSelector({
   onConfirm,
   onCancel,
   autoConfirm = false,
+  itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
 }: DocumentSelectorProps) {
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
     new Set(documents.map((_, index) => index))
@@ -27,7 +28,7 @@ export function DocumentSelector({
   const { currentPage, totalPages, startIndex, endIndex, selectedIndex } =
     usePagination({
       totalItems: documents.length,
-      itemsPerPage: ITEMS_PER_PAGE,
+      itemsPerPage,
       onCancel,
       onConfirm: () => {
         const selected = Array.from(selectedDocuments).map(

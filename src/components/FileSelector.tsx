@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { LocalFile } from '../repositories/fileRepository.js';
 import { usePagination } from '../hooks/usePagination.js';
+import { DEFAULT_ITEMS_PER_PAGE } from '../constants/pagination.js';
 
 interface FileSelectorProps {
   files: LocalFile[];
@@ -9,9 +10,8 @@ interface FileSelectorProps {
   onConfirm: (selectedFiles: LocalFile[]) => void;
   onCancel: () => void;
   autoConfirm?: boolean;
+  itemsPerPage?: number;
 }
-
-const ITEMS_PER_PAGE = 10;
 
 export function FileSelector({
   files,
@@ -19,6 +19,7 @@ export function FileSelector({
   onConfirm,
   onCancel,
   autoConfirm = false,
+  itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
 }: FileSelectorProps) {
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(
     new Set(files.map((_, index) => index))
@@ -27,7 +28,7 @@ export function FileSelector({
   const { currentPage, totalPages, startIndex, endIndex, selectedIndex } =
     usePagination({
       totalItems: files.length,
-      itemsPerPage: ITEMS_PER_PAGE,
+      itemsPerPage,
       onCancel,
       onConfirm: () => {
         const selected = Array.from(selectedFiles).map(index => files[index]);

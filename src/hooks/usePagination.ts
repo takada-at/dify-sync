@@ -45,30 +45,42 @@ export function usePagination({
         setSelectedIndex(prev => prev - 1);
       } else if (currentPage > 0) {
         // Move to previous page
-        setCurrentPage(prev => prev - 1);
-        setSelectedIndex((currentPage - 1) * itemsPerPage + itemsPerPage - 1);
+        setCurrentPage(prev => {
+          const newPage = prev - 1;
+          setSelectedIndex(newPage * itemsPerPage + itemsPerPage - 1);
+          return newPage;
+        });
       }
     } else if (key.downArrow) {
       if (pageSelectedIndex < currentPageItems - 1) {
         setSelectedIndex(prev => prev + 1);
       } else if (currentPage < totalPages - 1) {
         // Move to next page
-        setCurrentPage(prev => prev + 1);
-        setSelectedIndex((currentPage + 1) * itemsPerPage);
+        setCurrentPage(prev => {
+          const newPage = prev + 1;
+          setSelectedIndex(newPage * itemsPerPage);
+          return newPage;
+        });
       }
     } else if (key.leftArrow) {
       // Previous page
       if (currentPage > 0) {
-        setCurrentPage(prev => prev - 1);
-        const newPageStart = (currentPage - 1) * itemsPerPage;
-        setSelectedIndex(newPageStart);
+        setCurrentPage(prev => {
+          const newPage = prev - 1;
+          const newPageStart = newPage * itemsPerPage;
+          setSelectedIndex(newPageStart);
+          return newPage;
+        });
       }
     } else if (key.rightArrow) {
       // Next page
       if (currentPage < totalPages - 1) {
-        setCurrentPage(prev => prev + 1);
-        const newPageStart = (currentPage + 1) * itemsPerPage;
-        setSelectedIndex(newPageStart);
+        setCurrentPage(prev => {
+          const newPage = prev + 1;
+          const newPageStart = newPage * itemsPerPage;
+          setSelectedIndex(newPageStart);
+          return newPage;
+        });
       }
     } else if (input === ' ' && onSelectToggle) {
       onSelectToggle(selectedIndex);
