@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
 import { Document } from '../core/types/index.js';
+import { usePagination } from '../hooks/usePagination.js';
 
 interface DocumentSelectorProps {
   documents: Document[];
@@ -10,6 +11,8 @@ interface DocumentSelectorProps {
   autoConfirm?: boolean;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export function DocumentSelector({
   documents,
   title,
@@ -17,10 +20,41 @@ export function DocumentSelector({
   onCancel,
   autoConfirm = false,
 }: DocumentSelectorProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
     new Set(documents.map((_, index) => index))
   );
+
+  const { currentPage, totalPages, startIndex, endIndex, selectedIndex } =
+    usePagination({
+      totalItems: documents.length,
+      itemsPerPage: ITEMS_PER_PAGE,
+      onCancel,
+      onConfirm: () => {
+        const selected = Array.from(selectedDocuments).map(
+          index => documents[index]
+        );
+        onConfirm(selected);
+      },
+      onSelectToggle: index => {
+        setSelectedDocuments(prev => {
+          const newSet = new Set(prev);
+          if (newSet.has(index)) {
+            newSet.delete(index);
+          } else {
+            newSet.add(index);
+          }
+          return newSet;
+        });
+      },
+      onSelectAll: () => {
+        setSelectedDocuments(new Set(documents.map((_, index) => index)));
+      },
+      onDeselectAll: () => {
+        setSelectedDocuments(new Set());
+      },
+    });
+
+  const currentPageDocuments = documents.slice(startIndex, endIndex);
 
   // Auto-confirm if the flag is set
   useEffect(() => {
@@ -30,36 +64,7 @@ export function DocumentSelector({
     }
   }, [autoConfirm, documents, onConfirm]);
 
-  useInput((input, key) => {
-    if (key.upArrow) {
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : documents.length - 1));
-    } else if (key.downArrow) {
-      setSelectedIndex(prev => (prev < documents.length - 1 ? prev + 1 : 0));
-    } else if (input === ' ') {
-      setSelectedDocuments(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(selectedIndex)) {
-          newSet.delete(selectedIndex);
-        } else {
-          newSet.add(selectedIndex);
-        }
-        return newSet;
-      });
-    } else if (input === 'a' || input === 'A') {
-      // Select all
-      setSelectedDocuments(new Set(documents.map((_, index) => index)));
-    } else if (input === 'd' || input === 'D') {
-      // Deselect all
-      setSelectedDocuments(new Set());
-    } else if (key.return) {
-      const selected = Array.from(selectedDocuments).map(
-        index => documents[index]
-      );
-      onConfirm(selected);
-    } else if (key.escape) {
-      onCancel();
-    }
-  });
+  // Auto-confirm handling is done through useEffect, no need for useInput here
 
   const formatDate = (timestamp: number): string => {
     return new Date(timestamp * 1000).toLocaleString();
@@ -100,30 +105,43 @@ export function DocumentSelector({
         </Text>
       </Box>
 
-      {documents.map((doc, index) => (
-        <Box key={doc.id} marginLeft={1} flexDirection="column">
-          <Box>
-            <Text color={index === selectedIndex ? 'green' : 'white'}>
-              {selectedDocuments.has(index) ? '☑' : '☐'} {doc.name}
-            </Text>
-            <Box marginLeft={1}>
-              <Text color={getStatusColor(doc.indexing_status)}>
-                [{doc.indexing_status}]
+      {currentPageDocuments.map((doc, index) => {
+        const globalIndex = startIndex + index;
+        return (
+          <Box key={doc.id} marginLeft={1} flexDirection="column">
+            <Box>
+              <Text color={globalIndex === selectedIndex ? 'green' : 'white'}>
+                {selectedDocuments.has(globalIndex) ? '☑' : '☐'} {doc.name}
+              </Text>
+              <Box marginLeft={1}>
+                <Text color={getStatusColor(doc.indexing_status)}>
+                  [{doc.indexing_status}]
+                </Text>
+              </Box>
+            </Box>
+            <Box marginLeft={2}>
+              <Text color="gray">
+                Words: {doc.word_count} | Created: {formatDate(doc.created_at)}
               </Text>
             </Box>
           </Box>
-          <Box marginLeft={2}>
-            <Text color="gray">
-              Words: {doc.word_count} | Created: {formatDate(doc.created_at)}
-            </Text>
-          </Box>
+        );
+      })}
+
+      {totalPages > 1 && (
+        <Box marginTop={1}>
+          <Text color="cyan">
+            Page {currentPage + 1} of {totalPages} (Total documents:{' '}
+            {documents.length})
+          </Text>
         </Box>
-      ))}
+      )}
 
       <Box marginTop={1} flexDirection="column">
         <Text color="green">Selected: {selectedDocuments.size} documents</Text>
         <Text color="gray">
           Space: Select/Deselect, A: Select All, D: Deselect All, ↑↓: Navigate,
+          {totalPages > 1 && ' ←→: Page, '}
           Enter: Confirm, Esc: Cancel
         </Text>
       </Box>

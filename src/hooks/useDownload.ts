@@ -62,8 +62,18 @@ export function useDownload(
   const loadDocuments = async () => {
     try {
       const config = await loadConfig();
-      const response = await getDocuments(config.datasetId);
-      setDocuments(response.data);
+      const allDocuments: Document[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await getDocuments(config.datasetId, page, 100);
+        allDocuments.push(...response.data);
+        hasMore = response.has_more;
+        page++;
+      }
+
+      setDocuments(allDocuments);
     } catch (err) {
       throw new Error(
         `Failed to load documents: ${err instanceof Error ? err.message : 'Unknown error'}`
