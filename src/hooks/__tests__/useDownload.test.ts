@@ -117,7 +117,11 @@ describe('useDownload', () => {
     });
 
     expect(result.current.documents).toEqual(mockDocuments);
-    expect(mockDifyClient.getDocuments).toHaveBeenCalledWith('test-dataset', 1, 100);
+    expect(mockDifyClient.getDocuments).toHaveBeenCalledWith(
+      'test-dataset',
+      1,
+      100
+    );
   });
 
   it('should handle multiple files download process', async () => {
