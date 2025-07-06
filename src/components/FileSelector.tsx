@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { useState, useEffect } from 'react';
+import { Box, Text } from 'ink';
 import { LocalFile } from '../repositories/fileRepository.js';
+import { usePagination } from '../hooks/usePagination.js';
+import { DEFAULT_ITEMS_PER_PAGE } from '../constants/pagination.js';
 
 interface FileSelectorProps {
   files: LocalFile[];
@@ -8,6 +10,7 @@ interface FileSelectorProps {
   onConfirm: (selectedFiles: LocalFile[]) => void;
   onCancel: () => void;
   autoConfirm?: boolean;
+  itemsPerPage?: number;
 }
 
 export function FileSelector({
@@ -16,11 +19,41 @@ export function FileSelector({
   onConfirm,
   onCancel,
   autoConfirm = false,
+  itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
 }: FileSelectorProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(
     new Set(files.map((_, index) => index))
   );
+
+  const { currentPage, totalPages, startIndex, endIndex, selectedIndex } =
+    usePagination({
+      totalItems: files.length,
+      itemsPerPage,
+      onCancel,
+      onConfirm: () => {
+        const selected = Array.from(selectedFiles).map(index => files[index]);
+        onConfirm(selected);
+      },
+      onSelectToggle: index => {
+        setSelectedFiles(prev => {
+          const newSet = new Set(prev);
+          if (newSet.has(index)) {
+            newSet.delete(index);
+          } else {
+            newSet.add(index);
+          }
+          return newSet;
+        });
+      },
+      onSelectAll: () => {
+        setSelectedFiles(new Set(files.map((_, index) => index)));
+      },
+      onDeselectAll: () => {
+        setSelectedFiles(new Set());
+      },
+    });
+
+  const currentPageFiles = files.slice(startIndex, endIndex);
 
   // Auto-confirm if the flag is set
   useEffect(() => {
@@ -30,34 +63,7 @@ export function FileSelector({
     }
   }, [autoConfirm, files, onConfirm]);
 
-  useInput((input, key) => {
-    if (key.upArrow) {
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : files.length - 1));
-    } else if (key.downArrow) {
-      setSelectedIndex(prev => (prev < files.length - 1 ? prev + 1 : 0));
-    } else if (input === ' ') {
-      setSelectedFiles(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(selectedIndex)) {
-          newSet.delete(selectedIndex);
-        } else {
-          newSet.add(selectedIndex);
-        }
-        return newSet;
-      });
-    } else if (input === 'a' || input === 'A') {
-      // Select all
-      setSelectedFiles(new Set(files.map((_, index) => index)));
-    } else if (input === 'd' || input === 'D') {
-      // Deselect all
-      setSelectedFiles(new Set());
-    } else if (key.return) {
-      const selected = Array.from(selectedFiles).map(index => files[index]);
-      onConfirm(selected);
-    } else if (key.escape) {
-      onCancel();
-    }
-  });
+  // Auto-confirm handling is done through useEffect, no need for useInput here
 
   const formatFileSize = (bytes: number): string => {
     const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -87,21 +93,33 @@ export function FileSelector({
         </Text>
       </Box>
 
-      {files.map((file, index) => (
-        <Box key={file.path} marginLeft={1}>
-          <Text color={index === selectedIndex ? 'green' : 'white'}>
-            {selectedFiles.has(index) ? '☑' : '☐'} {file.name}
-          </Text>
-          <Box marginLeft={1}>
-            <Text color="gray">({formatFileSize(file.size)})</Text>
+      {currentPageFiles.map((file, index) => {
+        const globalIndex = startIndex + index;
+        return (
+          <Box key={file.path} marginLeft={1}>
+            <Text color={globalIndex === selectedIndex ? 'green' : 'white'}>
+              {selectedFiles.has(globalIndex) ? '☑' : '☐'} {file.name}
+            </Text>
+            <Box marginLeft={1}>
+              <Text color="gray">({formatFileSize(file.size)})</Text>
+            </Box>
           </Box>
+        );
+      })}
+
+      {totalPages > 1 && (
+        <Box marginTop={1}>
+          <Text color="cyan">
+            Page {currentPage + 1} of {totalPages} (Total files: {files.length})
+          </Text>
         </Box>
-      ))}
+      )}
 
       <Box marginTop={1} flexDirection="column">
         <Text color="green">Selected: {selectedFiles.size} files</Text>
         <Text color="gray">
           Space: Select/Deselect, A: Select All, D: Deselect All, ↑↓: Navigate,
+          {totalPages > 1 && ' ←→: Page, '}
           Enter: Confirm, Esc: Cancel
         </Text>
       </Box>

@@ -7,7 +7,7 @@ import {
   getSettingsFilePath,
   Settings,
 } from '../../repositories/settingsRepository.js';
-import { loadConfig } from '../../repositories/config.js';
+import { loadConfig, clearConfigCache } from '../../repositories/config.js';
 
 type SettingField = 'apiUrl' | 'apiKey' | 'datasetId' | 'saveButton';
 type EditableField = Exclude<SettingField, 'saveButton'>;
@@ -93,6 +93,10 @@ export function SettingsScreen() {
   const handleSave = async () => {
     try {
       await saveSettingsToFile(settings);
+
+      // Clear config cache to force reload with new settings
+      clearConfigCache();
+
       setSavedMessage('Settings saved successfully!');
       setError('');
 

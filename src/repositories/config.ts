@@ -69,6 +69,11 @@ export function setDatasetIdOverride(datasetId: string): void {
   configCache = null;
 }
 
+export function clearConfigCache(): void {
+  // Clear cache to force reload from file/env
+  configCache = null;
+}
+
 export function getLogLevel(): string {
   return globalThis.process.env.LOG_LEVEL || 'info';
 }
